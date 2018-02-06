@@ -1,0 +1,7 @@
+hello_world.hello:
+  path: '/database_install'
+  defaults:
+    _controller: '\Drupal\issn_database_installer\Controller\IssnDatabaseInstallerController::installed'
+    _title: 'Installing...'
+  requirements:
+    _permission: 'access content'

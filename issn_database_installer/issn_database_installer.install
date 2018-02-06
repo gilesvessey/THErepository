@@ -1,0 +1,145 @@
+<?php
+/**
+* Implements hook_schema().
+*/
+
+function issn_database_installer_schema()
+{
+	$schema = [];
+	
+	$schema['title'] = [
+		'description' => 'Titles of works.',
+		'fields' => [
+			'id' => [
+				'description' => 'Primary key.',
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			],
+			'title' => [
+				'description' => 'Title of work.',
+				'type' => 'varchar',
+				'length' => 50,
+				'not null' => TRUE,
+			],
+			'source' => [
+				'description' => 'Institution submitted by.',
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'default' => 0,
+			],
+		],
+		'primary key' => ['id'],
+	];
+	
+	$schema['issn'] = [
+		'description' => 'ISSN of titles.',
+		'fields' => [
+			'id' => [
+				'description' => 'Primary key.',
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			],
+			'issn' => [
+				'description' => 'ISSN of title.',
+				'type' => 'varchar',
+				'length' => 9,
+				'not null' => TRUE,
+			],
+			'title_id' => [
+				'description' => 'Title ID.',
+				'type' => 'int',
+				'unsigned' => TRUE,
+			],
+		],
+		'primary key' => ['id'],
+	];
+	
+	$schema['lcclass'] = [
+		'description' => 'LC Class of titles.',
+		'fields' => [
+			'id' => [
+				'description' => 'Primary key.',
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			],
+			'lcclass' => [
+				'description' => 'LC Class of title.',
+				'type' => 'varchar',
+				'length' => 8,
+				'not null' => TRUE,
+			],
+		],
+		'primary key' => ['id'],
+	];
+	
+	$schema['callnumber'] = [
+		'description' => 'Call Number of titles.',
+		'fields' => [
+			'id' => [
+				'description' => 'Primary key.',
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			],
+			'callnumber' => [
+				'description' => 'Call Number of title.',
+				'type' => 'varchar',
+				'length' => 150,
+				'not null' => TRUE,
+			],
+		],
+		'primary key' => ['id'],
+	];
+	
+	$schema['callnumber_title'] = [
+		'description' => 'Intermediary table.',
+		'fields' => [
+			'id' => [
+				'description' => 'Primary key.',
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			],
+			'callnumber_id' => [
+				'description' => 'Call Number ID.',
+				'type' => 'int',
+				'unsigned' => TRUE,
+			],
+			'title_id' => [
+				'description' => 'Title ID.',
+				'type' => 'int',
+				'unsigned' => TRUE,
+			],
+		],
+		'primary key' => ['id'],
+	];
+	
+	$schema['lcclass_title'] = [
+		'description' => 'Intermediary table.',
+		'fields' => [
+			'id' => [
+				'description' => 'Primary key.',
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			],
+			'lcclass_id' => [
+				'description' => 'LC Class ID.',
+				'type' => 'int',
+				'unsigned' => TRUE,
+			],
+			'title_id' => [
+				'description' => 'Title ID.',
+				'type' => 'int',
+				'unsigned' => TRUE,
+			],
+		],
+		'primary key' => ['id'],
+	];
+	
+	return $schema;
+}
+?>
