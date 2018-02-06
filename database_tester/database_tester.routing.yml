@@ -1,0 +1,7 @@
+database_tester.test:
+  path: '/insert'
+  defaults:
+    _controller: '\Drupal\database_tester\Controller\DatabaseTesterController::test'
+    _title: 'Test...'
+  requirements:
+    _permission: 'access content'

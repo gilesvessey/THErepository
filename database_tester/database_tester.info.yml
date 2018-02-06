@@ -1,0 +1,5 @@
+name: Database Tester
+description: A module for testing ISSN/CallNumber database schema
+type: module
+core: 8.x
+package: Custom
