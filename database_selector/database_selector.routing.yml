@@ -1,0 +1,7 @@
+database_selector.test:
+  path: '/select'
+  defaults:
+    _controller: '\Drupal\database_selector\Controller\DatabaseSelectorController::test'
+    _title: 'Test...'
+  requirements:
+    _permission: 'access content'

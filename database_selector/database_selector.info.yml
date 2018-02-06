@@ -1,0 +1,5 @@
+name: Database Selector
+description: A module for testing select statements with the ISSN/Call Number database
+type: module
+core: 8.x
+package: Custom
