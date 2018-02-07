@@ -16,18 +16,18 @@ class DatabaseSelectorController extends ControllerBase
 	
 	public function test() 
 	{
-		$database = \Drupal::database();
-		$result = $database->query("SELECT * FROM {title} WHERE id > :id", [':id' => 0]);
+		$database = \Drupal::database(); //Drupal's dope version of a connection string, abstracts away the databay
+		$result = $database->query("SELECT * FROM {title} WHERE id > :id", [':id' => 0]); //:id is how we do variables, Drupal doesn't use normal SQL it uses its own version that abastracts away the underlying database
 		
-		foreach($result as $record)
+		foreach($result as $record) //queries come back as multi-record recordsets
 		{
-			$id = $record->id;
+			$id = $record->id; //assigning local variable $id the returned record's id
 			$title = $record->title;
 			
-			$printOut .= "ID: $id TITLE: $title <br /><br />";
+			$printOut .= "ID: $id TITLE: $title <br /><br />"; //html that shit up!
 		}
 		
-		return array('#markup' => $printOut);
+		return array('#markup' => $printOut); //put that html into Drupal's markup area
 	}
 }
 ?>
