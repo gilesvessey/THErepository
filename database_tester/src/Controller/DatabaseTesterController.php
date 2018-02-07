@@ -72,6 +72,7 @@ class DatabaseTesterController extends ControllerBase
 	
 	public function test() 
 	{
+		//sample of how module programmers would actually insert into database:
 		$this->insertListing('Journal du conseil', '0902-3232', 'GC1 .I64', 'GC');
 		$this->insertListing('Journal du conseil', '0902-3232', 'HV1 .I64', 'HV');
 		$this->insertListing('Seminars in roentgenology', '1558-4658', 'RC78', 'RC');
