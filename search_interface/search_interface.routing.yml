@@ -1,0 +1,7 @@
+search_interface.content:
+  path: '/testsearch'
+  defaults:
+    _controller: '\Drupal\search_interface\Controller\SearchInterfaceController::content'
+    _title: 'Search Interface'
+  requirements:
+    _permission: 'access content'

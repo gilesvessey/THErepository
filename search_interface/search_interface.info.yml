@@ -1,0 +1,5 @@
+name: Search Interface
+description: Creates the page that contains the search interface
+type: module
+core: 8.x
+package: Custom
