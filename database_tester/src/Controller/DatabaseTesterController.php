@@ -15,11 +15,11 @@ class DatabaseTesterController extends ControllerBase
 */
 	public function insertListing($titleIn, $issnIn, $callNumberIn, $lcclassIn)
 	{
-		$database = \Drupal::database();
+		$database = \Drupal::database(); //this is Drupal's version of a connection string, abstracting away underlying database
 		
-		$database->insert('title');		
+		$database->insert('title');	//table name	
 		$fields = [
-			'title' => $titleIn,
+			'title' => $titleIn,	//table column
 			'source' => 1,
 			];
 		$title_id = $database->insert('title')
