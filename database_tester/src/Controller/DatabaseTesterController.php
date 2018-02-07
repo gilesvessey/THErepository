@@ -19,10 +19,10 @@ class DatabaseTesterController extends ControllerBase
 		
 		$database->insert('title');	//table name	
 		$fields = [
-			'title' => $titleIn,	//table column
+			'title' => $titleIn,	//table column => value (in this case variable $titleIn)
 			'source' => 1,
 			];
-		$title_id = $database->insert('title')
+		$title_id = $database->insert('title') //execute() returns ID of record just inserted.
 			->fields($fields)
 			->execute();		
 		
