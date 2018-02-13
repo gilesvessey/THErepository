@@ -1,0 +1,67 @@
+<?php
+/**
+* Implements hook_schema().
+*/
+
+function issn_database_installer_lite_schema()
+{
+	$schema = [];
+	
+	$schema['title'] = [
+		'description' => 'Titles of works.',
+		'fields' => [
+			'id' => [
+				'description' => 'Primary key.',
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			],
+			'title' => [
+				'description' => 'Title of work.',
+				'type' => 'varchar',
+				'length' => 150,
+				'not null' => TRUE,
+			],
+			'source' => [
+				'description' => 'Institution submitted by.',
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'default' => 0,
+			],
+			'issn_l' => [
+				'description' => 'ISSN-L\'s',
+				'type' => 'varchar',
+				'length' => 10,
+				'not null' => TRUE,
+			],
+			'p_issn' => [
+				'description' => 'pISSN\'s',
+				'type' => 'varchar',
+				'length' => 10,
+				'not null' => TRUE,
+			],
+			'e_issn' => [
+				'description' => 'eISSN\'s',
+				'type' => 'varchar',
+				'length' => 10,
+				'not null' => TRUE,
+			],
+			'lcclass' => [
+				'description' => 'LC Class of title.',
+				'type' => 'varchar',
+				'length' => 150,
+				'not null' => TRUE,
+			],
+			'callnumber' => [
+				'description' => 'Call Number of title.',
+				'type' => 'varchar',
+				'length' => 20,
+				'not null' => TRUE,
+			],
+		],
+		'primary key' => ['id'],
+	];
+	
+	return $schema;
+}
+?>

@@ -1,0 +1,5 @@
+name: ISSN Database Installer Lite
+description: Installs the empty database for the Call Number project. This version is a simplified (and quicker) version.
+type: module
+core: 8.x
+package: Custom
