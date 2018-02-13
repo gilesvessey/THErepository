@@ -1,0 +1,7 @@
+database_tester02.tester:
+  path: '/tester'
+  defaults:
+    _controller: '\Drupal\database_tester02\Controller\Tester::test'
+    _title: 'Test...'
+  requirements:
+    _permission: 'access content'
