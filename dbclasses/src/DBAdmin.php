@@ -125,5 +125,9 @@ class DBAdmin
 		
 		return $recordSet;
 	}
+      public function recordCount($i)
+      {
+       return $database->query("SELECT count(*) FROM {title}")
+      }
 }
 ?>
