@@ -1,0 +1,7 @@
+db_input_form.settings:
+  path: '/input_form'
+  defaults:
+    _form: 'Drupal\db_input_form\Form\InputForm'
+    _title: 'Input Form'
+  requirements:
+    _permission: 'administer site configuration'
