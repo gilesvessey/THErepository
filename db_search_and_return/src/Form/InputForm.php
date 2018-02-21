@@ -18,7 +18,7 @@ class InputForm extends ConfigFormBase {
 
     // Build our Form API array here.
 	
-	$form['title'] = [ //the array "form" holds all the fields of the that will be printed to screen.
+		$form['title'] = [ //the array "form" holds all the fields of the that will be printed to screen.
 			'#type' => 'textfield', //a standard, single-line text field that accepts input.
 			'#size' => '50', //physical width of the filed.
 			'#maxlength' => '150', //accepts up to 50 characters max.
@@ -47,15 +47,15 @@ class InputForm extends ConfigFormBase {
     return $form;
   }
 
-	/**
-	*This method will be called automatically upon submission.
-	*This is the shit that gets done if the user's input passes validation.
-	*/	
+  /**
+  *This method will be called automatically upon submission.
+  *This is the shit that gets done if the user's input passes validation.
+  */	
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
     // Handle submitted values in $form_state here.
 	$dbAdmin = new DBAdmin();
-	$searchType = "";
+	$searchType = ""; //we'll tell the user what type of search was performed, for shits and giggles.
 	
 	if($form_state->getValue('title') != '')
 	{
