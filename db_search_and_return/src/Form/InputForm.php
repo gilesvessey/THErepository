@@ -5,7 +5,7 @@ namespace Drupal\db_search_and_return\Form;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 
-//use our custom classes
+//Required custom classes
 use Drupal\dbclasses\DBAdmin;
 use Drupal\dbclasses\DBRecord;
 
@@ -46,6 +46,17 @@ class InputForm extends ConfigFormBase {
 
     return $form;
   }
+	
+  /*
+  There's also a method that goes something like this...
+  
+  public function validateForm(array &$form, FormStateInterface $form_state) {}
+  
+  It's for validating (obviously) before submitting.
+  
+  I didn't look it up, so I may have the method signature wrong. Check it out for live implementations that need it.
+  
+  */
 
   /**
   *This method will be called automatically upon submission.
