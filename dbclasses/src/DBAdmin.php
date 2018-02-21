@@ -47,6 +47,31 @@ class DBAdmin
 		
 		return $recordSet;
 	}
+public function selectAll()
+	{
+		$database = \Drupal::database();	
+		$result = $database->query("SELECT * FROM {title}");
+		
+		$recordSet = array();
+		$setIndex = 0;
+		
+		foreach($result as $record)
+		{
+			$id = $record->id;
+			$title = $record->title;
+			$source = $record->source;
+			$issn_l = $record->issn_l;
+			$p_issn = $record->p_issn;
+			$e_issn = $record->e_issn;
+			$lcclass = $record->lcclass;
+			$callnumber = $record->callnumber;
+			
+			$recordSet[$setIndex]  = new DBRecord($id, $title, $source, $issn_l, $p_issn, $e_issn, $lcclass, $callnumber);
+			$setIndex++;
+		}
+		
+		return $recordSet;
+	}
 	
 	public function selectByTitle($title)
 	{
@@ -125,9 +150,16 @@ class DBAdmin
 		
 		return $recordSet;
 	}
-      public function recordCount($i)
+      public function recordCount()
       {
-       return $database->query("SELECT count(*) FROM {title}")
+       $database = \Drupal::database();
+       $result = $database->query("SELECT COUNT(*) AS numrows FROM title");
+       $numrows = '';
+       foreach($result as $record)
+       {
+       $numrows = $record->numrows;
+       }
+       return $numrows;
       }
 }
 ?>
