@@ -1,0 +1,5 @@
+name: DB Search and Return
+description: A sample of making a form that interacts with the ISSN/CallNumber database.
+type: module
+core: 8.x
+package: Custom
