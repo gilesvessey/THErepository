@@ -76,7 +76,7 @@ public function selectAll()
 	public function selectByTitle($title)
 	{
 		$database = \Drupal::database();	
-		$result = $database->query("SELECT * FROM {title} WHERE title = :title", [':title' => $title]);
+		$result = $database->query("SELECT * FROM {title} WHERE title LIKE :title", [':title' => db_like($title).'%']);
 		
 		$recordSet = array();
 		$setIndex = 0;

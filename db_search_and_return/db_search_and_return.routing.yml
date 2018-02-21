@@ -1,0 +1,7 @@
+db_search_and_return.settings:
+  path: '/db_search_and_return'
+  defaults:
+    _form: 'Drupal\db_search_and_return\Form\InputForm'
+    _title: 'Input Form'
+  requirements:
+    _permission: 'administer site configuration'
