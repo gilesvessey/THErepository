@@ -86,6 +86,8 @@ class InputForm extends ConfigFormBase {
 
 	return $form;
   }
+	
+//Don't worry about anything below here... just giving definitions to virtual methods.
   
    /** 
    * {@inheritdoc}
