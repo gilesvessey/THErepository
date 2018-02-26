@@ -31,25 +31,19 @@ function issn_database_installer_lite_schema()
 			'issn_l' => [
 				'description' => 'ISSN-L\'s',
 				'type' => 'varchar',
-				'length' => 10,
+				'length' => 8,
 				'not null' => FALSE,
 			],
 			'p_issn' => [
 				'description' => 'pISSN\'s',
 				'type' => 'varchar',
-				'length' => 10,
+				'length' => 8,
 				'not null' => FALSE,
 			],
 			'e_issn' => [
 				'description' => 'eISSN\'s',
 				'type' => 'varchar',
-				'length' => 10,
-				'not null' => FALSE,
-			],
-			'lcclass' => [
-				'description' => 'LC Class of title.',
-				'type' => 'varchar',
-				'length' => 150,
+				'length' => 8,
 				'not null' => FALSE,
 			],
 			'callnumber' => [
