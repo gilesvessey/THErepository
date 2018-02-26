@@ -1,0 +1,7 @@
+results.content:
+  path: '/results'
+  defaults:
+    _controller: '\Drupal\results_module\Controller\ResultsController::content'
+    _title: 'Giles Results Table'
+  requirements:
+    _permission: 'access content'

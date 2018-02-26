@@ -1,0 +1,6 @@
+name: Results Page Module
+description: Creates a page with a table containing results grabbed from the database.
+package: Custom
+type: module
+version: 1.0
+core: 8.x
