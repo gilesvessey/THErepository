@@ -1,5 +1,0 @@
-name: Upload
-description: A form for the user to upload files.
-core: 8.x
-package: Custom
-type: module
