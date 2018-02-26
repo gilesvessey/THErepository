@@ -150,6 +150,7 @@ public function selectAll()
 		
 		return $recordSet;
 	}
+	
       public function recordCount()
       {
        $database = \Drupal::database();
@@ -161,5 +162,13 @@ public function selectAll()
        }
        return $numrows;
       }
+	
+	public function deleteById($id)
+	{
+		$database = \Drupal::database();	
+		$result = $database->query("DELETE FROM {title} WHERE id = :id", [':id' => $id]);
+		
+		return "$id deleted.";
+	}
 }
 ?>
