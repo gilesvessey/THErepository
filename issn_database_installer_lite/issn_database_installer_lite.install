@@ -20,7 +20,7 @@ function issn_database_installer_lite_schema()
 				'description' => 'Title of work.',
 				'type' => 'varchar',
 				'length' => 150,
-				'not null' => TRUE,
+				'not null' => FALSE,
 			],
 			'source' => [
 				'description' => 'Institution submitted by.',
@@ -32,25 +32,25 @@ function issn_database_installer_lite_schema()
 				'description' => 'ISSN-L\'s',
 				'type' => 'varchar',
 				'length' => 10,
-				'not null' => TRUE,
+				'not null' => FALSE,
 			],
 			'p_issn' => [
 				'description' => 'pISSN\'s',
 				'type' => 'varchar',
 				'length' => 10,
-				'not null' => TRUE,
+				'not null' => FALSE,
 			],
 			'e_issn' => [
 				'description' => 'eISSN\'s',
 				'type' => 'varchar',
 				'length' => 10,
-				'not null' => TRUE,
+				'not null' => FALSE,
 			],
 			'lcclass' => [
 				'description' => 'LC Class of title.',
 				'type' => 'varchar',
 				'length' => 150,
-				'not null' => TRUE,
+				'not null' => FALSE,
 			],
 			'callnumber' => [
 				'description' => 'Call Number of title.',
