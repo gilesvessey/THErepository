@@ -11,7 +11,7 @@ use Drupal\dbclasses\DBAdmin;
 use Drupal\dbclasses\DBRecord;
 
 class UploadForm extends FormBase {
-    /**
+    /*
   *This method puts the form together (defines fields).
   */
   public function buildForm(array $form, FormStateInterface $form_state) {
@@ -27,8 +27,12 @@ class UploadForm extends FormBase {
       //'#upload_location' => 'public://my_files/',
     ];
 		
+	$form['info_link'] = [
+		'#type' => 'item',
+		'#markup' => "<a href='uploadinfo' target='_blank'>For more info about upload requirements, click here.</a>",
+		
+	];
 	$form['issn_option'] = [
-		'#prefix' => "  For more info about upload requirements, click here.",
 		'#type' => 'radios',
 		'#title' => ('For matching ISSNs:'),
 		'#default_value' => 0,
@@ -105,7 +109,7 @@ class UploadForm extends FormBase {
 	//$handle = @fopen($file, "r");
 	
 	$file = [['1234', '1324', '1423', 'pepperini55', 'AC23'],
-			 ['82718391', '57682819', '58671875', 'Pizza', 'BC34'],
+			 ['82718391', '57682819', '58671875', 'Pizza', '6C34'],
 			 ['88932187', '85319289', '86428476', 'lemon boy', 'CC23']
 			];
 	
@@ -117,9 +121,9 @@ class UploadForm extends FormBase {
 	$radioOption = $form_state->getValue('issn_option');
 	
 	//Regular expressions for data checking
-	$regTitle = '/^([a-zA-Z]|\s)*$/'; //Title, any combination of letters and whitespace, or nothing since it's optional
+	//$regTitle = '/^([a-zA-Z]|\s)*$/'; //Title, any combination of letters and whitespace, or nothing since it's optional
 	$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hypen
-	$regLCCN = ''; //Will hold the LCCN regex
+	$regLCCN = '/^[a-zA-Z]([a-zA-Z]|[0-9]|.|-|\s)*$/'; //Will hold the LCCN regex
 	
 	$headersCorrect = true;
 	//Read in the headers from first line of file
@@ -210,9 +214,11 @@ class UploadForm extends FormBase {
 			$correct = true; //For checking if the data is correct
 			
 			//Check title
+			/*
 			if(preg_match($regTitle, $title) == 0 | preg_match($regTitle, $title) == false) {//If the title has unaccepted characters
 				$correct = false; 
 			}
+			*/
 			//Check L-ISSN
 			if((preg_match($regISSN, $issn_l) == 0 | preg_match($regISSN, $issn_l) == false) && $issn_l != null) {//If the ISSN is not in the right format and something is there
 				$correct = false;
@@ -226,7 +232,9 @@ class UploadForm extends FormBase {
 				$correct = false;
 			}
 			//Check LCCN
-			//Will need the LCCN regex for this, or however we want to handle it. Will have to have some data in it
+			if((preg_match($regLCCN, $callnumber) == 0 | preg_match($regLCCN, $callnumber) == false) || $callnumber == null) {//If the LCCN is invalid or is missing, line is wrong
+				$correct = false;
+			}
 			
 			//Check that at least one ISSN element has data inside
 			$existsISSN = false;
@@ -251,7 +259,7 @@ class UploadForm extends FormBase {
 					$results = $dbAdmin->selectByISSN($issn_l);
 					foreach($results as $entry) {
 						if($entry->source == $uid) { //If the uid is matching
-							//Delete this entry
+							$dbAdmin->deleteById($entry->id);
 						}
 					}
 					
@@ -259,7 +267,7 @@ class UploadForm extends FormBase {
 					$results = $dbAdmin->selectByISSN($p_issn);
 					foreach($results as $entry) {
 						if($entry->source == $uid) { //If the uid is matching
-							//Delete this entry
+							$dbAdmin->deleteById($entry->id);
 						}
 					}
 					
@@ -267,7 +275,7 @@ class UploadForm extends FormBase {
 					$results = $dbAdmin->selectByISSN($p_issn);
 					foreach($results as $entry) {
 						if($entry->source == $uid) { //If the uid is matching
-							//Delete this entry
+							$dbAdmin->deleteById($entry->id);
 						}
 					}
 					
