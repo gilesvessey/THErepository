@@ -47,7 +47,8 @@ class DBAdmin
 		
 		return $recordSet;
 	}
-public function selectAll()
+	
+	public function selectAll()
 	{
 		$database = \Drupal::database();	
 		$result = $database->query("SELECT * FROM {title}");
@@ -151,17 +152,37 @@ public function selectAll()
 		return $recordSet;
 	}
 	
-      public function recordCount()
-      {
-       $database = \Drupal::database();
-       $result = $database->query("SELECT COUNT(*) AS numrows FROM title");
-       $numrows = '';
-       foreach($result as $record)
-       {
-       $numrows = $record->numrows;
-       }
-       return $numrows;
-      }
+	public function getISSNId($issn)
+	{
+		/*
+		returns a single int (ID)
+		returns a 0 on no result
+		*/
+		
+		$database = \Drupal::database();	
+		$result = $database->query("SELECT id FROM {title} WHERE issn_l = :issn OR p_issn = :issn OR e_issn = :issn", [':issn' => $issn]);
+		
+		$id = 0;
+		
+		foreach($result as $record)
+		{
+			$id = $record->id;
+		}
+		
+		return $id;
+	}
+	
+     	public function recordCount()
+   	{
+		$database = \Drupal::database();
+		$result = $database->query("SELECT COUNT(*) AS numrows FROM title");
+		$numrows = '';
+		foreach($result as $record)
+		{
+			$numrows = $record->numrows;
+		}
+		return $numrows;
+    	}
 	
 	public function deleteById($id)
 	{
