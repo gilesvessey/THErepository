@@ -46,6 +46,7 @@ class SingleUploadForm extends FormBase {
 		'#type' => 'textfield',
 		'#title' =>t('LC Number'),
 		'#size' => 15,
+		'#required' => true,
 	];
 	
 	//Title of Journal
