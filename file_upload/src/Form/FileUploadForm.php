@@ -37,8 +37,8 @@ class FileUploadForm extends FormBase {
 		'#default_value' => 0,
 		'#options' => array(
 			0 =>t('Add new LC assignments'),
-			1 =>t('Replace all LC assignments (Owned by me)'),
-			2=>t('Replace all LC assignments (Owned by my institution)')
+			1 =>t('Replace existing LC assignments (Owned by me)'),
+			2 =>t('Replace existing LC assignments (Owned by my institution)')
 		),
     ];
 			
@@ -48,26 +48,70 @@ class FileUploadForm extends FormBase {
 		'#value' => t('Submit.'), //the text printed on the submit button
 	];
 	
-	/*
-	$form['table'] = [
-		'#type' => 'table',
-		
-	];
-	*/
-	
-	if($form_state->getValue('submitted') == 1) {
+	//After submission, if there were any invalid lines, print them to this table
+	if($form_state->get('submitted') == 1 && $form_state->get('lineError') == 1) {
 		$form['table'] = array(
 			'#type' => 'table',
-			'#caption' => $this->t('Sample Table'),
+			'#prefix' => t('Invalid Lines'),
 			'#header' => array(
-				$this->t('Line#'),
-				$this->t('p_issn'),
-				$this->t('e_issn'),
-				$this->t('l_issn'),
-				$this->t('callnumber'),
-				$this->t('title'),
+				t('Line #'),
+				t('p_issn'),
+				t('e_issn'),
+				t('l_issn'),
+				t('callnumber'),
+				t('title'),
+				t('Reason(s)'),
 			),
 		);
+		
+		//Print the values of each row into the table
+		$counter = 0;
+		foreach($form_state->get('tabledata') as $row) {
+			
+			//Line number
+			$form['table'][$counter]['Line #'] = array(
+				'#type' => 'item',
+				'#description' => $row[0],
+			);
+			
+			//P-issn
+			$form['table'][$counter]['p_issn'] = array(
+				'#type' => 'item',
+				'#description' => $row[1],
+			);
+			
+			//E-issn
+			$form['table'][$counter]['e_issn'] = array(
+				'#type' => 'item',
+				'#description' => $row[2],
+			);
+			
+			//L-issn
+			$form['table'][$counter]['l_issn'] = array(
+				'#type' => 'item',
+				'#description' => $row[3],
+			);
+			
+			//Callnumber
+			$form['table'][$counter]['callnumber'] = array(
+				'#type' => 'item',
+				'#description' => $row[4],
+			);
+			
+			//Title
+			$form['table'][$counter]['title'] = array(
+				'#type' => 'item',
+				'#description' => $row[5],
+			);
+			
+			//Reason for line being declined
+			$form['table'][$counter]['Reason(s)'] = array(
+				'#type' => 'item',
+				'#description' => $row[6],
+			);
+			
+			$counter++;
+		}
 	}
 	
     return $form;
@@ -131,6 +175,7 @@ class FileUploadForm extends FormBase {
 	//$filepath = $form_state['values']['file_upload']->$filepath;
 	//$handle = @fopen($file, "r");
 	
+	//test data in place of actual file data
 	$file = [['1234', '1324', '1423', 'pepperini55', 'AC23'],
 			 ['82718391', '57682819', '58671875', 'Pizza', '6C34'],
 			 ['88932187', '85319289', '86428476', 'lemon boy', 'CC23']
@@ -143,21 +188,17 @@ class FileUploadForm extends FormBase {
 	//Get the issn radio button option
 	$issnOption = $form_state->getValue('issn_option');
 	
-	$form['contacts']['#header'] = array(
-			$this->t('pepperoni'),
-	);
-	$form['contacts']['#caption'] = $this->t('tester');
-	
 	//Regular expressions for data checking
 	//$regTitle = '/^([a-zA-Z]|\s)*$/'; //Title, any combination of letters and whitespace, or nothing since it's optional
 	$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hypen
 	$regLCCN = '/^[a-zA-Z]([a-zA-Z]|[0-9]|.|-|\s)*$/'; //Will hold the LCCN regex
 	
-	//If option is file upload
-	$headersCorrect = true;
-	//Read in the headers from first line of file
+	$headersCorrect = true; //Holds whether the headers are correct or not
+	
+	//Test headers in place of file headers
 	$headerTest = ['p_issn', 'l_issn', 'e_issn', 'title', 'callnumber']; //Example first line of file
 		
+	//Read in the headers from first line of file	
 	//$headers = fgetcsv($file);
 	$headers = $headerTest;
 
@@ -173,7 +214,8 @@ class FileUploadForm extends FormBase {
 		$l_issnPos = -1;
 		$e_issnPos = -1;
 		$callnumberPos = -1;
-		$counter = 0;
+		
+		$counter = 0; //Current header position
 		
 		//Headers must be of title, p_issn, l_issn, e_issn, callnumber
 		foreach($headers as $header) {
@@ -226,20 +268,23 @@ class FileUploadForm extends FormBase {
 				$headersCorrect = false;
 				drupal_set_message('Invalid value present in header: ' . $header, 'error');
 			}
-			$counter++;
+			
+			$counter++; //Increment current header position
 		}
 	}	
 		
-	$lineCount = 0; //Holds current line number
-	if($headersCorrect){ //Only read in if the headers are correct
-		$lineCount++; //Increment line counter
+	
+	if($headersCorrect){ //Only read in data if the headers are correct
+	
+		$lineCount = 0; //Holds current line number
 		
 		foreach($file as $line) {
 		//while(! feof($file)) {
 			//$line = fgetcsv($file);
-					
-			//Read in the line, using the header positions we got earlier
+			
+			$lineCount++; //Increment line counter	
 				
+			//Read in the line, using the header positions we got earlier
 			$title = $line[$titlePos];
 			$l_issn = $line[$l_issnPos];
 			$p_issn = $line[$p_issnPos];
@@ -253,23 +298,76 @@ class FileUploadForm extends FormBase {
 			/*
 			if(preg_match($regTitle, $title) == 0 | preg_match($regTitle, $title) == false) {//If the title has unaccepted characters
 				$correct = false; 
+				
+				$test = $form_state->get(['tabledata', $lineCount]);
+				if(isset($test)) { //If error is already present on line concatenate the reason
+					$reason .= ", Invalid title";
+				}
+				else { //Otherwise create a new error reason
+					$reason = 'Invalid title';
+				}
+				
+				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $callnumber, $title, $reason]);
 			}
 			*/
+			
 			//Check L-ISSN
 			if((preg_match($regISSN, $l_issn) == 0 | preg_match($regISSN, $l_issn) == false) && $l_issn != null) {//If the ISSN is not in the right format and something is there
 				$correct = false;
+				
+				$test = $form_state->get(['tabledata', $lineCount]);
+				if(isset($test)) { //If error is already present on line concatenate the reason
+					$reason .= ", Invalid l_issn";
+				}
+				else { //Otherwise create a new error reason
+					$reason = 'Invalid l_issn';
+				}
+				
+				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $callnumber, $title, $reason]);
 			}
+			
 			//Check P-ISSN
 			if((preg_match($regISSN, $p_issn) == 0 | preg_match($regISSN, $p_issn) == false) && $p_issn != null) {//If the ISSN is not in the right format and something is there
 				$correct = false;
+				
+				$test = $form_state->get(['tabledata', $lineCount]);
+				if(isset($test)) { //If error is already present on line concatenate the reason
+					$reason .= ", Invalid p_issn";
+				}
+				else { //Otherwise create a new error reason
+					$reason = "Invalid p_issn";
+				}
+				
+				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $callnumber, $title, $reason]);
 			}
+			
 			//Check E-ISSN
 			if((preg_match($regISSN, $e_issn) == 0 | preg_match($regISSN, $e_issn) == false) && $e_issn != null) {//If the ISSN is not in the right format and something is there
 				$correct = false;
+				
+				$test = $form_state->get(['tabledata', $lineCount]);
+				if(isset($test)) { //If error is already present on line concatenate the reason
+					$reason .= ", Invalid e_issn";
+				}
+				else { //Otherwise create a new error reason
+					$reason = "Invalid e_issn";
+				}
+				
+				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $callnumber, $title, $reason]);
 			}
 			//Check LCCN
 			if((preg_match($regLCCN, $callnumber) == 0 | preg_match($regLCCN, $callnumber) == false) || $callnumber == null) {//If the LCCN is invalid or is missing, line is wrong
 				$correct = false;
+				
+				$test = $form_state->get(['tabledata', $lineCount]);
+				if(isset($test)) { //If error is already present on line concatenate the reason
+					$reason .= ", Invalid callnumber";
+				}
+				else { //Otherwise create a new error reason
+					$reason = "Invalid callnumber";
+				}
+				
+				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $callnumber, $title, $reason]);
 			}
 				
 			//Check that at least one ISSN element has data inside
@@ -277,7 +375,23 @@ class FileUploadForm extends FormBase {
 			if(($l_issn != null) | ($p_issn != null) | ($e_issn != null)) {
 					$existsISSN = true;
 			}
+			else {
+				$test = $form_state->get(['tabledata', $lineCount]);
+				if(isset($test)) { //If error is already present on line concatenate the reason
+					$reason .= ', No issn values present';
+				}
+				else { //Otherwise create a new error reason
+					$reason = 'No issn values present';
+				}
 				
+				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $callnumber, $title, $reason]);
+				
+			}
+			
+			//Note that at least one line has an error, so error table will be displayed
+			if(!$correct || !$existsISSN) {
+				$form_state->set('lineError', 1);
+			}	
 				
 			if($correct && $existsISSN) { //If this line's data is correct and contains at least one ISSN, enter it
 				
@@ -353,10 +467,10 @@ class FileUploadForm extends FormBase {
 		}
 	}
 	
-	//$fclose($file);
+	//$fclose($file); //Close the file
 	
-	$form_state->setValue('submitted', 1);
-	$form_state->setRebuild();
+	$form_state->set('submitted', 1); //Form has been submitted
+	$form_state->setRebuild(); //Update the form elements
 	
 	return $form;
 }
