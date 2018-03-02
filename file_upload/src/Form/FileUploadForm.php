@@ -8,51 +8,12 @@ use Drupal\dbclasses\DBRecord;
 
 class FileUploadForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
-	
-	//Link to info page. Opens in a new window/tab
-	$form['info_link'] = [
-		'#type' => 'item',
-		'#markup' => "<a href='uploadinfo' target='_blank'>For more info about upload requirements, click here.</a>",
-		
-	];
-		
-	//File upload element
-	$form['file_upload'] = [
-		'#type' => 'managed_file',
-		'#title' => t('Upload a file into the database here:'),
-		'#size' => 20,
-		'#upload_validators' => array('file_validate_extensions' => array('csv')),
-      //'#upload_validators' => $validators,
-      //'#upload_location' => 'public://my_files/',
-    ];
-	
-		
-	//Radio buttons for choosing how duplicate LC assignments are handled, 
-	// 1 -> Add new ones and don't delete anything
-	// 2 -> Add new ones and delete entries with matching ISSNs and user ID
-	// 3 -> Add new ones and delete entries with matching ISSNs and institution
-	$form['issn_option'] = [
-		'#type' => 'radios',
-		'#title' => ('For matching ISSNs:'),
-		'#default_value' => 0,
-		'#options' => array(
-			0 =>t('Add new LC assignments'),
-			1 =>t('Replace existing LC assignments (Owned by me)'),
-			2 =>t('Replace existing LC assignments (Owned by my institution)')
-		),
-    ];
-			
-	//Submit button
-	$form['submit'] = [
-		'#type' => 'submit', //standard form button for submission
-		'#value' => t('Submit.'), //the text printed on the submit button
-	];
-	
+	  
 	//After submission, if there were any invalid lines, print them to this table
 	if($form_state->get('submitted') == 1 && $form_state->get('lineError') == 1) {
 		$form['table'] = array(
 			'#type' => 'table',
-			'#prefix' => t('Invalid Lines'),
+			'#prefix' => "<b>Invalid Lines:</b>",
 			'#header' => array(
 				t('Line #'),
 				t('p_issn'),
@@ -112,6 +73,47 @@ class FileUploadForm extends FormBase {
 			
 			$counter++;
 		}
+	}
+	else { //Otherwise, print all the input elements
+	
+		//Link to info page. Opens in a new window/tab
+		$form['info_link'] = [
+			'#type' => 'item',
+			'#markup' => "<a href='uploadinfo' target='_blank'>For more info about upload requirements, click here.</a>",
+			
+		];
+			
+		//File upload element
+		$form['file_upload'] = [
+			'#type' => 'managed_file',
+			'#title' => t('Upload a file into the database here:'),
+			'#size' => 20,
+			'#upload_validators' => array('file_validate_extensions' => array('csv')),
+			//'#upload_validators' => $validators,
+			//'#upload_location' => 'public://my_files/',
+		];
+		
+			
+		//Radio buttons for choosing how duplicate LC assignments are handled, 
+		// 1 -> Add new ones and don't delete anything
+		// 2 -> Add new ones and delete entries with matching ISSNs and user ID
+		// 3 -> Add new ones and delete entries with matching ISSNs and institution
+		$form['issn_option'] = [
+			'#type' => 'radios',
+			'#title' => ('For matching ISSNs:'),
+			'#default_value' => 0,
+			'#options' => array(
+				0 =>t('Add new LC assignments'),
+				1 =>t('Replace existing LC assignments (Owned by me)'),
+				2 =>t('Replace existing LC assignments (Owned by my institution)')
+			),
+		];
+				
+		//Submit button
+		$form['submit'] = [
+			'#type' => 'submit', //standard form button for submission
+			'#value' => t('Submit'), //the text printed on the submit button
+		];
 	}
 	
     return $form;
@@ -277,6 +279,7 @@ class FileUploadForm extends FormBase {
 	if($headersCorrect){ //Only read in data if the headers are correct
 	
 		$lineCount = 0; //Holds current line number
+		$errorCount = 0; //Holds number of invalid lines
 		
 		foreach($file as $line) {
 		//while(! feof($file)) {
@@ -388,9 +391,9 @@ class FileUploadForm extends FormBase {
 				
 			}
 			
-			//Note that at least one line has an error, so error table will be displayed
 			if(!$correct || !$existsISSN) {
-				$form_state->set('lineError', 1);
+				$form_state->set('lineError', 1); //Note that at least one line has an error, so error table will be displayed
+				$errorCount++;
 			}	
 				
 			if($correct && $existsISSN) { //If this line's data is correct and contains at least one ISSN, enter it
@@ -469,8 +472,16 @@ class FileUploadForm extends FormBase {
 	
 	//$fclose($file); //Close the file
 	
-	$form_state->set('submitted', 1); //Form has been submitted
-	$form_state->setRebuild(); //Update the form elements
+	if($headersCorrect) {
+		drupal_set_message("Upload Complete");
+		drupal_set_message("File contained " . $lineCount . " entries");
+		if($form_state->get('lineError') == 1) {
+			drupal_set_message($errorCount . " entries were invalid and were not uploaded to the database (More info below)", 'warning');
+			
+		}
+		$form_state->set('submitted', 1); //Form has been submitted
+		$form_state->setRebuild(); //Update the form elements
+	}
 	
 	return $form;
 }
