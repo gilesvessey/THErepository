@@ -1,0 +1,5 @@
+name: Single Upload
+description: A form for the user to upload a single entry.
+core: 8.x
+package: Custom
+type: module

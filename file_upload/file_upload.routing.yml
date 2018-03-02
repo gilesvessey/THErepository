@@ -1,0 +1,7 @@
+file_upload.form:
+ path: '/file_upload'
+ defaults:
+   _title: 'File Uploading:'
+   _form: '\Drupal\file_upload\Form\FileUploadForm'
+ requirements:
+   _permission: 'file_upload access_content_perm'
