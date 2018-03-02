@@ -24,6 +24,7 @@ class SingleUploadForm extends FormBase {
 		'#maxlength' => 8,
 		'#size' => 8,
 	];
+	
 	//E-ISSN
 	$form['e_issn'] = [
 		'#type' => 'textfield',
@@ -31,6 +32,7 @@ class SingleUploadForm extends FormBase {
 		'#maxlength' => 8,
 		'#size' => 8,
 	];
+	
 	//L-ISSN
 	$form['l_issn'] = [
 		'#type' => 'textfield',
@@ -38,12 +40,14 @@ class SingleUploadForm extends FormBase {
 		'#maxlength' => 8,
 		'#size' => 8,
 	];
+	
 	//LC Call Number
 	$form['callnumber']  = [
 		'#type' => 'textfield',
 		'#title' =>t('LC Number'),
 		'#size' => 15,
 	];
+	
 	//Title of Journal
 	$form['title'] = [
 		'#type' => 'textfield',
@@ -113,29 +117,45 @@ class SingleUploadForm extends FormBase {
 	/*
 	if(preg_match($regTitle, $title) == 0 | preg_match($regTitle, $title) == false) {//If the title has unaccepted characters
 		$correct = false; 
+		
+		drupal_set_message('Invalid title', 'error');
 	}
 	*/
 	//Check L-ISSN
 	if((preg_match($regISSN, $l_issn) == 0 | preg_match($regISSN, $l_issn) == false) && $l_issn != null) {//If the ISSN is not in the right format and something is there
 		$correct = false;
+		
+		drupal_set_message('Invalid l_issn', 'error');
 	}
+	
 	//Check P-ISSN
 	if((preg_match($regISSN, $p_issn) == 0 | preg_match($regISSN, $p_issn) == false) && $p_issn != null) {//If the ISSN is not in the right format and something is there
 		$correct = false;
+		
+		drupal_set_message('Invalid p_issn', 'error');
 	}
+	
 	//Check E-ISSN
 	if((preg_match($regISSN, $e_issn) == 0 | preg_match($regISSN, $e_issn) == false) && $e_issn != null) {//If the ISSN is not in the right format and something is there
 		$correct = false;
+		
+		drupal_set_message('Invalid e_issn', 'error');
 	}
+	
 	//Check LCCN
 	if((preg_match($regLCCN, $callnumber) == 0 | preg_match($regLCCN, $callnumber) == false) || $callnumber == null) {//If the LCCN is invalid or is missing, line is wrong
 		$correct = false;
+		
+		drupal_set_message('Invalid callnumber', 'error');
 	}
 				
 	//Check that at least one ISSN element has data inside
 	$existsISSN = false;
 	if(($l_issn != null) | ($p_issn != null) | ($e_issn != null)) {
 		$existsISSN = true;
+	}
+	else {
+		drupal_set_message('No ISSN present', 'error');
 	}
 		
 	if($correct && $existsISSN) { //If this line's data is correct and contains at least one ISSN, enter it
@@ -204,12 +224,10 @@ class SingleUploadForm extends FormBase {
 			//Now add the new entry
 			$dbAdmin->insert($title, $uid, $l_issn, $p_issn, $e_issn, 0, $callnumber);
 		}
+		
+		drupal_set_message('Entry uploaded successfully!');
 	}
-	
-	$message = 'pizza';
-	
-	drupal_set_message($message);
-	//drupal_set_error($error); 
+
 	return $form;
   }
   
