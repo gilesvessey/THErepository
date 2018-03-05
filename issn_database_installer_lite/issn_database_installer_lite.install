@@ -46,11 +46,40 @@ function issn_database_installer_lite_schema()
 				'length' => 8,
 				'not null' => FALSE,
 			],
+			'lcclass' => [
+				'type' => 'varchar',
+				'length' => 10,
+				'not null' => FALSE,
+			],
 			'callnumber' => [
 				'description' => 'Call Number of title.',
 				'type' => 'varchar',
 				'length' => 20,
 				'not null' => TRUE,
+			],
+		],
+		'primary key' => ['id'],
+	];
+	
+	$schema['institution'] = [
+		'fields' => [
+			'id' => [
+				'description' => 'ID number for an institution',
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			],
+			'extension' => [
+				'description' => 'Associated email extension',
+				'type' => 'varchar',
+				'not null' => TRUE,
+				'length' => 30,
+			],
+			'name' => [
+				'description' => 'Name of institution',
+				'type' => 'varchar',
+				'not null' => TRUE,
+				'length' => 100,
 			],
 		],
 		'primary key' => ['id'],

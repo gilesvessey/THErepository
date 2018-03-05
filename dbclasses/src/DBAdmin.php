@@ -191,5 +191,42 @@ class DBAdmin
 		
 		return "$id deleted.";
 	}
+	
+	/*
+		For institution database table
+	*/
+	
+	//Insert a new institution, contains the associated email extension and name
+	public function insertInstitution($extension, $name)
+	{
+		$database = \Drupal::database();	
+		$database->insert('institution');
+			$fields = [
+				'extension' => $extension,
+				'name' => $name,
+				];
+			$institution_id = $database->insert('institution')
+				->fields($fields)
+				->execute();
+				
+			return $institution_id;
+	}
+	
+	//Get the name of an institution from an email extension
+	//Returns 0 on no result
+	public function selectByExtension($extension) 
+	{
+		$database = \Drupal::database();	
+		$result = $database->query("SELECT * FROM {institution} WHERE extension = :extension", [':extension' => $extension]);
+		
+		$name = 0;
+		
+		foreach($result as $record)
+		{
+			$name = $record->name;
+		}
+			
+		return $name;
+	}
 }
 ?>

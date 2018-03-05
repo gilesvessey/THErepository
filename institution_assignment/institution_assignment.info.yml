@@ -1,0 +1,5 @@
+name: Institution Assignment
+description: Assigns a user an institution after account creation
+type: module
+core: 8.x
+package: Custom

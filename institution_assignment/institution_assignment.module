@@ -1,0 +1,28 @@
+<?php
+
+	use Drupal\dbclasses\DBAdmin;
+	use Drupal\dbclasses\DBRecord;
+	
+	function institution_assignment_user_insert($account) {
+		$dbAdmin = new DBAdmin();
+		
+		$uid = $account->get('uid')->value; //Get the user's ID
+		$email = $account->getEmail(); //Get the user's email address
+		
+		//Get the extension by matching with a regular expression
+		$ext = array();
+		preg_match('/@(.*?)\./s', $email, $ext);
+		
+		$extension = $ext[1];
+		
+		//Get the name of the institution (if there is one)
+		$name = $dbAdmin->selectByExtension($extension);
+		if(strcmp($name, "0") == 0) { //If no results are found, insert into the database
+			$dbAdmin->insertInstitution($extension, $account->get('field_institution')->value);
+		}
+		else { //Otherwise set the user's institution as the result
+			$account->get('field_institution')->value = $name;
+			$account->save();
+		}
+	}
+?>
