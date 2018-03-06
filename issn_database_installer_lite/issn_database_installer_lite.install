@@ -2,13 +2,12 @@
 /**
 * Implements hook_schema().
 */
-
 function issn_database_installer_lite_schema()
 {
 	$schema = [];
 	
-	$schema['title'] = [
-		'description' => 'Titles of works.',
+	$schema['issn'] = [
+		'description' => 'Collection of ISSNs',
 		'fields' => [
 			'id' => [
 				'description' => 'Primary key.',
@@ -16,75 +15,122 @@ function issn_database_installer_lite_schema()
 				'unsigned' => TRUE,
 				'not null' => TRUE,
 			],
+			'modified' => [
+				'mysql_type' => 'timestamp',
+				'not null' => TRUE
+			],
 			'title' => [
 				'description' => 'Title of work.',
 				'type' => 'varchar',
 				'length' => 150,
 				'not null' => FALSE,
 			],
-			'source' => [
-				'description' => 'Institution submitted by.',
-				'type' => 'int',
-				'unsigned' => TRUE,
-				'default' => 0,
-			],
 			'issn_l' => [
 				'description' => 'ISSN-L\'s',
 				'type' => 'varchar',
-				'length' => 8,
+				'length' => 10,
 				'not null' => FALSE,
 			],
 			'p_issn' => [
 				'description' => 'pISSN\'s',
 				'type' => 'varchar',
-				'length' => 8,
+				'length' => 10,
 				'not null' => FALSE,
 			],
 			'e_issn' => [
 				'description' => 'eISSN\'s',
 				'type' => 'varchar',
-				'length' => 8,
-				'not null' => FALSE,
-			],
-			'lcclass' => [
-				'type' => 'varchar',
 				'length' => 10,
 				'not null' => FALSE,
-			],
-			'callnumber' => [
-				'description' => 'Call Number of title.',
-				'type' => 'varchar',
-				'length' => 20,
-				'not null' => TRUE,
 			],
 		],
 		'primary key' => ['id'],
 	];
 	
 	$schema['institution'] = [
+		'description' => 'Collection of institutions',
 		'fields' => [
 			'id' => [
-				'description' => 'ID number for an institution',
+				'description' => 'Primary key.',
 				'type' => 'serial',
 				'unsigned' => TRUE,
 				'not null' => TRUE,
 			],
-			'extension' => [
-				'description' => 'Associated email extension',
-				'type' => 'varchar',
-				'not null' => TRUE,
-				'length' => 30,
-			],
 			'name' => [
-				'description' => 'Name of institution',
 				'type' => 'varchar',
+				'length' => 150,
+				'not null' => FALSE,
+			],
+			'domain' => [
+				'type' => 'varchar',
+				'length' => 150,
+				'not null' => FALSE,
+			],
+		],
+		'primary key' => ['id'],
+	];
+	
+	$schema['lc'] = [
+		'description' => 'Collection of LCs.',
+		'fields' => [
+			'id' => [
+				'description' => 'Primary key.',
+				'type' => 'serial',
+				'unsigned' => TRUE,
 				'not null' => TRUE,
-				'length' => 100,
+			],
+			'lc' => [
+				'description' => 'Title of work.',
+				'type' => 'varchar',
+				'length' => 150,
+				'not null' => FALSE,
+			],    
+			'issn_id' => [
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'default' => 0,
+			],    
+			'user_id' => [
+				'description' => 'Submitted by.',
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'default' => 0,
+			],
+		],
+		'primary key' => ['id'],
+	];
+	
+	$schema['user_institution'] = [
+		'description' => 'Connects users to institutions',
+		'fields' => [
+			'id' => [
+				'description' => 'Primary key.',
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			],   
+			'user_id' => [
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'default' => 0,
+			],    
+			'institution_id' => [
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'default' => 0,
 			],
 		],
 		'primary key' => ['id'],
 	];
 	
 	return $schema;
+}
+function issn_database_installer_lite_enable() {
+  db_query('
+    ALTER TABLE {issn} 
+    MODIFY modified TIMESTAMP NOT NULL 
+    DEFAULT CURRENT_TIMESTAMP 
+    ON UPDATE CURRENT_TIMESTAMP'
+  );
 }
 ?>
