@@ -24,5 +24,11 @@
 			$account->get('field_institution')->value = $name;
 			$account->save();
 		}
+		
+		
+		//Add to the user institution table
+		$id = $dbAdmin->getInstitutionID($account->get('field_institution')->value); //Get the id from the name of the institution
+		$dbAdmin->insertUser($uid, $id);
+		
 	}
 ?>
