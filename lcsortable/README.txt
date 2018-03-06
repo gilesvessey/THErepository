@@ -1,0 +1,2 @@
+This php script takes a call number, and normalizes it to make it sortable. It is not to be used as a stand alone program, but to be incorporated and modified
+into wherever need be. It is based off the following google script written in js: https://github.com/mbelvadi2/lcsortable.
