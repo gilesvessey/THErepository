@@ -228,5 +228,22 @@ class DBAdmin
 			
 		return $name;
 	}
+	
+	/*
+		For user_institution table
+	*/
+	public function insertUser($user, $institution) {
+		$database = \Drupal::database();	
+		$database->insert('user_institution');
+			$fields = [
+				'user_id' => $user,
+				'institution_id' => $institution,
+				];
+			$id = $database->insert('user_institution')
+				->fields($fields)
+				->execute();
+				
+			return $id;
+	}
 }
 ?>
