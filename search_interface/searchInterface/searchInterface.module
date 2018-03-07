@@ -1,0 +1,12 @@
+<?php
+/*
+* implements hook_menu().
+* @file
+* Contains searchInterface.module
+*/
+
+function searchInterface_theme($form, &$form_state) {
+
+	return $form;
+
+}

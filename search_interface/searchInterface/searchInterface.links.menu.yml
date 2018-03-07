@@ -1,0 +1,6 @@
+searchInterface.settings_form:
+  title: 'Search Interface configuration'
+  route_name: searchInterface.settings_form
+  description: 'Provide search options for ISSN->LC database system'
+  parent: system.admin_config_system
+  weight: 99

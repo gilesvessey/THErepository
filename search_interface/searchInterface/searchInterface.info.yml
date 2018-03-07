@@ -1,0 +1,8 @@
+name: User Search Interface
+type: module
+description: Query Input and Return as a file or Show Result.
+core: 8.x
+package: Custom
+dependencies:
+  - node
+  - block
