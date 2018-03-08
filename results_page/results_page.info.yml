@@ -1,0 +1,5 @@
+name: Search Filter & Results Module
+description: All in one module to handle the search filter, and the results page.
+type: module
+core: 8.x
+package: Custom
