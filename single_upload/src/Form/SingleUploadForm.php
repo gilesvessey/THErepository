@@ -170,7 +170,7 @@ class SingleUploadForm extends FormBase {
 			//Search for L-ISSN
 			$results = $dbAdmin->selectByISSN($l_issn);
 			foreach($results as $entry) {
-				if($entry->source == $uid) { //If the uid is matching
+				if($entry->user_id == $uid) { //If the uid is matching
 					$dbAdmin->deleteById($entry->id);
 				}
 			}
@@ -178,7 +178,7 @@ class SingleUploadForm extends FormBase {
 			//Search for P-ISSN
 			$results = $dbAdmin->selectByISSN($p_issn);
 			foreach($results as $entry) {
-				if($entry->source == $uid) { //If the uid is matching
+				if($entry->user_id == $uid) { //If the uid is matching
 								$dbAdmin->deleteById($entry->id);
 				}
 			}
@@ -186,7 +186,7 @@ class SingleUploadForm extends FormBase {
 			//Search for E-ISSN
 			$results = $dbAdmin->selectByISSN($p_issn);
 			foreach($results as $entry) {
-				if($entry->source == $uid) { //If the uid is matching
+				if($entry->user_id == $uid) { //If the uid is matching
 					$dbAdmin->deleteById($entry->id);
 				}
 			}
