@@ -189,9 +189,9 @@ class DBAdmin
 						ON user_institution.user_id = lc.user_id
 						LEFT OUTER JOIN institution
 						ON institution.id = user_institution.institution_id
-				WHERE issn.issn_l = $issn
-					OR issn.p_issn = $issn
-					OR issn.e_issn = $issn; 
+				WHERE issn.issn_l = '$issn'
+					OR issn.p_issn = '$issn'
+					OR issn.e_issn = '$issn'; 
 				";
 				
 		$result = db_query($sql);
