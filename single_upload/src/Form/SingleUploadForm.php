@@ -123,40 +123,40 @@ class SingleUploadForm extends FormBase {
 	}
 	*/
 	//Check L-ISSN
-	if((preg_match($regISSN, $l_issn) == 0 | preg_match($regISSN, $l_issn) == false) && $l_issn != null) {//If the ISSN is not in the right format and something is there
+	if((preg_match($regISSN, $l_issn) == 0 || preg_match($regISSN, $l_issn) == false) && $l_issn != null) {//If the ISSN is not in the right format and something is there
 		$correct = false;
 		
 		drupal_set_message('Invalid l_issn', 'error');
 	}
 	
 	//Check P-ISSN
-	if((preg_match($regISSN, $p_issn) == 0 | preg_match($regISSN, $p_issn) == false) && $p_issn != null) {//If the ISSN is not in the right format and something is there
+	if((preg_match($regISSN, $p_issn) == 0 || preg_match($regISSN, $p_issn) == false) && $p_issn != null) {//If the ISSN is not in the right format and something is there
 		$correct = false;
 		
 		drupal_set_message('Invalid p_issn', 'error');
 	}
 	
 	//Check E-ISSN
-	if((preg_match($regISSN, $e_issn) == 0 | preg_match($regISSN, $e_issn) == false) && $e_issn != null) {//If the ISSN is not in the right format and something is there
+	if((preg_match($regISSN, $e_issn) == 0 || preg_match($regISSN, $e_issn) == false) && $e_issn != null) {//If the ISSN is not in the right format and something is there
 		$correct = false;
 		
 		drupal_set_message('Invalid e_issn', 'error');
 	}
 	
 	//Check LCCN
-	if((preg_match($regLCCN, $callnumber) == 0 | preg_match($regLCCN, $callnumber) == false) || $callnumber == null) {//If the LCCN is invalid or is missing, line is wrong
+	if((preg_match($regLCCN, $callnumber) == 0 || preg_match($regLCCN, $callnumber) == false) || $callnumber == null) {//If the LCCN is invalid or is missing, line is wrong
 		$correct = false;
 		
 		drupal_set_message('Invalid callnumber', 'error');
 	}
 				
-	//Check that at least one ISSN element has data inside
+	//Check that at least one of e or p ISSN elements has data inside
 	$existsISSN = false;
-	if(($l_issn != null) | ($p_issn != null) | ($e_issn != null)) {
+	if(($p_issn != null) || ($e_issn != null)) {
 		$existsISSN = true;
 	}
 	else {
-		drupal_set_message('No ISSN present', 'error');
+		drupal_set_message('No p-ISSN or e-ISSN present', 'error');
 	}
 		
 	if($correct && $existsISSN) { //If this line's data is correct and contains at least one ISSN, enter it
@@ -166,28 +166,34 @@ class SingleUploadForm extends FormBase {
 		//Replace own assignments
 		else if ($issnOption == 1) {
 			//Do a query for each ISSN type, look for entries with matching user ID
-							
-			//Search for L-ISSN
-			$results = $dbAdmin->selectByISSN($l_issn);
-			foreach($results as $entry) {
-				if($entry->user_id == $uid) { //If the uid is matching
-					$dbAdmin->deleteById($entry->id);
+			
+			if($l_issn != '') {
+				//Search for L-ISSN
+				$results = $dbAdmin->selectByISSN($l_issn);
+				foreach($results as $entry) {
+					if($entry->user == $uid) { //If the uid is matching
+						$dbAdmin->deleteById($entry->id);
+					}
 				}
 			}
-							
-			//Search for P-ISSN
-			$results = $dbAdmin->selectByISSN($p_issn);
-			foreach($results as $entry) {
-				if($entry->user_id == $uid) { //If the uid is matching
-								$dbAdmin->deleteById($entry->id);
+					
+			if($p_issn != '') {
+				//Search for P-ISSN
+				$results = $dbAdmin->selectByISSN($p_issn);
+				foreach($results as $entry) {
+					if($entry->user == $uid) { //If the uid is matching
+						$dbAdmin->deleteById($entry->id);
+					}
 				}
 			}
-							
-			//Search for E-ISSN
-			$results = $dbAdmin->selectByISSN($p_issn);
-			foreach($results as $entry) {
-				if($entry->user_id == $uid) { //If the uid is matching
-					$dbAdmin->deleteById($entry->id);
+				
+			if($e_issn != '') {
+				//Search for E-ISSN
+				$results = $dbAdmin->selectByISSN($e_issn);
+				foreach($results as $entry) {
+					if($entry->user == $uid) { //If the uid is matching
+						$dbAdmin->deleteById($entry->id);
+					}
 				}
 			}
 							
