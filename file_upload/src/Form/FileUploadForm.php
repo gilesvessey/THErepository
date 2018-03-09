@@ -5,8 +5,10 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\dbclasses\DBAdmin;
 use Drupal\dbclasses\DBRecord;
+use Drupal\Core\File\File;
 
 class FileUploadForm extends FormBase {
+	
   public function buildForm(array $form, FormStateInterface $form_state) {
 	  
 	//After submission, if there were any invalid lines, print them to this table
@@ -88,6 +90,7 @@ class FileUploadForm extends FormBase {
 			'#type' => 'managed_file',
 			'#title' => t('Upload a file into the database here:'),
 			'#size' => 20,
+			'#upload_location' => 'public://uploads/',
 			'#upload_validators' => array('file_validate_extensions' => array('csv')),
 			//'#upload_validators' => $validators,
 			//'#upload_location' => 'public://my_files/',
@@ -165,23 +168,33 @@ class FileUploadForm extends FormBase {
 	//As we're reading we need to check for missing required fields. If there's something missing, just don't upload that file. Store the data in an array of bad lines.
 	//Need to store the line number as we go.
 	//Need to verify the data of each thing, using regular expressions.
-	//Will need to find out the delimiter used somehow, eg. , or tab, or whatever
-	//Need to get the LC class from the callnumber, why do we need the lc class even ??
-	//Idk if nulls are working yet ???
 	
-	//$file = file_save_upload('file_upload');
-	//$form_state['values']['file_upload'] = $file;
+	$database = \Drupal::database(); //Drupal saves references in its database to all files uploaded via managed_file
+	$sql = "SELECT uri FROM file_managed WHERE status=0 ORDER BY fid DESC LIMIT 1;"; //find the uri of the file just added
+	$result = db_query($sql);
+	$fileLocation = '';
 	
-	//$file = $form_state->getValue('file_upload');
+	foreach($result as $record)
+	{
+		$fileLocation = $record->uri;
+		//public:// is the folder that Drupal allows users to download/access files from, etc
+		$fileLocation = str_replace('public://', 'sites/default/files/', $fileLocation); //format the file location properly
+	}
 	
-	//$filepath = $form_state['values']['file_upload']->$filepath;
-	//$handle = @fopen($file, "r");
+	$file = []; //instantiate $file which will be an array of arrays
 	
-	//test data in place of actual file data
-	$file = [['1234', '1324', '1423', 'pepperini55', 'AC23'],
-			 ['82718391', '57682819', '58671875', 'Pizza', '6C34'],
-			 ['88932187', '85319289', '86428476', 'lemon boy', 'CC23']
-			];
+	$fileHandle = fopen($fileLocation, "rw"); //open file
+	if($fileHandle) //if no error
+	{
+		while (!feof($fileHandle)) { //until end of file...
+			$record = fgets($fileHandle); //each line in the file is one record
+			array_push($file,explode(",",$record)); //each record is itself an array of items (ISSN, title, etc)
+		}
+		
+		fclose($fileHandle);
+	} else { //problem in opening file
+		echo "Unable to access file.";
+	}
 	
 	//Get the user's id to put as the source
 	$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
