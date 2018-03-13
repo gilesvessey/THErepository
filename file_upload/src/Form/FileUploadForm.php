@@ -229,7 +229,29 @@ class FileUploadForm extends FormBase {
 	//Regular expressions for data checking
 	//$regTitle = '/^([a-zA-Z]|\s)*$/'; //Title, any combination of letters and whitespace, or nothing since it's optional
 	$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hypen
-	$regLCCN = '/^[a-zA-Z]([a-zA-Z]|[0-9]|.|-|\s)*$/'; //Will hold the LCCN regex
+	$regLCCN = '/^([a-zA-Z]{1,3}).*$/';
+	#$regLCCN = '/^([a-zA-Z]{1,3})(([0-9]{0,4})|([0-9]{0,4}\.([0-9]{1,4})))(\.[a-zA-Z][0-9]{0,3}){0,2}.*$/';
+	
+	/*
+	The above commented regLCCN enforces pretty strict formatting for LCs. The format is the following:
+	1-3 letters (for the class) followed by, 
+	0-4 digits or 0-4 digits followed be a dot followed by another 0-4 digits for the subject (subject is optional) followed by,
+	1 letter followed by up to 3 letters for a cutter. You can have 0-2 cutters.
+	Anything after that is ok
+
+	Some examples of valid LCs with this regular expression: a, ab, abc, abc1, abc1234, abc1234.1, abc.1234.1234, abc.1234.1234.a1, abc.1.a123.a123
+	Some examples of invalid LCs with this regular expression: 1, abcd, a12345, a1234.12345
+
+	The problem with this is that sometimes people don't follow this format very strictly, and they put alot of 
+	random stuff in their LC making following a regular expression rather difficult. A few examples of this found
+	in given database: "GV723.N3 .{Ohorn}3", "GV848.5.A1 .R6514 (FRENCH) (JUV)", "GV862 .N55 INTERNET", "CA1CI51-61".
+
+	If you find that this regular expression is to strict use the following instead
+
+	$regLCCN = '/^([a-zA-Z]{1,3}).*$/';
+	
+	If in the future, you discover you want to be that strict with the formatting of lcs, use that line instead.
+	.*/
 	
 	$headersCorrect = true; //Holds whether the headers are correct or not
 	
@@ -392,7 +414,11 @@ class FileUploadForm extends FormBase {
 				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $callnumber, $title, $reason]);
 			}
 			//Check LCCN
-			if((preg_match($regLCCN, $callnumber) == 0 | preg_match($regLCCN, $callnumber) == false) || $callnumber == null) {//If the LCCN is invalid or is missing, line is wrong
+			
+			//to make things easier, we will trim the whitespace out of the callnumber, and check the trimmed call number for validation instead.
+			$trimmed_callnumber = str_replace(' ', '', $callnumber);
+			
+			if((preg_match($regLCCN, $trimmed_callnumber) == 0 | preg_match($regLCCN, $trimmed_callnumber) == false) || $trimmed_callnumber == null) {//If the LCCN is invalid or is missing, line is wrong
 				$correct = false;
 				
 				$test = $form_state->get(['tabledata', $lineCount]);
