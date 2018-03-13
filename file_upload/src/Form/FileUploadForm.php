@@ -82,7 +82,6 @@ class FileUploadForm extends FormBase {
 		$form['info_link'] = [
 			'#type' => 'item',
 			'#markup' => "<a href='uploadinfo' target='_blank'>For more info about upload requirements, click here.</a>",
-			
 		];
 			
 		//File upload element
@@ -91,9 +90,7 @@ class FileUploadForm extends FormBase {
 			'#title' => t('Upload a file into the database here:'),
 			'#size' => 20,
 			'#upload_location' => 'public://uploads/',
-			'#upload_validators' => array('file_validate_extensions' => array('csv')),
-			//'#upload_validators' => $validators,
-			//'#upload_location' => 'public://my_files/',
+			'#upload_validators' => array('file_validate_extensions' => array('csv tsv')),
 		];
 		
 			
@@ -173,6 +170,7 @@ class FileUploadForm extends FormBase {
 	$sql = "SELECT uri FROM file_managed WHERE status=0 ORDER BY fid DESC LIMIT 1;"; //find the uri of the file just added
 	$result = db_query($sql);
 	$fileLocation = '';
+	$fileExtension = '';
 	
 	foreach($result as $record)
 	{
@@ -182,13 +180,38 @@ class FileUploadForm extends FormBase {
 	}
 	
 	$file = []; //instantiate $file which will be an array of arrays
+	$headers = [];
+	$isHeader = TRUE;
 	
+	//determine delimiter
+	$fileExtension = pathinfo($fileLocation, PATHINFO_EXTENSION);
+	$delimiter = '';
+	if($fileExtension == 'tsv')
+		$delimiter = "\t";
+	else //default is comma
+		$delimiter = ',';
+		
 	$fileHandle = fopen($fileLocation, "rw"); //open file
 	if($fileHandle) //if no error
-	{
+	{		
 		while (!feof($fileHandle)) { //until end of file...
 			$record = fgets($fileHandle); //each line in the file is one record
-			array_push($file,explode(",",$record)); //each record is itself an array of items (ISSN, title, etc)
+			
+			if($isHeader) //first line of file is header...
+			{
+				$tempHeaders = [];
+				array_push($tempHeaders,explode("$delimiter",$record));
+				$headers[0] = trim($tempHeaders[0][0]); //trim to make sure no trailing white space or line breaks
+				$headers[1] = trim($tempHeaders[0][1]);
+				$headers[2] = trim($tempHeaders[0][2]);
+				$headers[3] = trim($tempHeaders[0][3]);
+				$headers[4] = trim($tempHeaders[0][4]);
+				$isHeader = FALSE;
+			}
+			else
+			{
+				array_push($file,explode("$delimiter",$record)); //each record is itself an array of items (ISSN, title, etc)
+			}
 		}
 		
 		fclose($fileHandle);
@@ -211,16 +234,13 @@ class FileUploadForm extends FormBase {
 	$headersCorrect = true; //Holds whether the headers are correct or not
 	
 	//Test headers in place of file headers
-	$headerTest = ['p_issn', 'l_issn', 'e_issn', 'title', 'callnumber']; //Example first line of file
-		
-	//Read in the headers from first line of file	
-	//$headers = fgetcsv($file);
-	$headers = $headerTest;
+	//$headerTest = ['p_issn', 'l_issn', 'e_issn', 'title', 'callnumber']; //Example first line of file
 
 	//Check that there are 5 elements in the header
 	if(count($headers) != 5) {
 		$headersCorrect = false;
-		drupal_set_message('Wrong number of elements in header', 'error');
+		$numOfHeaders = count($headers);
+		drupal_set_message("Wrong number of elements in header ($numOfHeaders present instead of 5)", 'error');
 	}
 	else {
 		//Get positions for each piece of input data based on the headers
