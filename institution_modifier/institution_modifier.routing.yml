@@ -1,0 +1,7 @@
+institution_modifier.settings:
+  path: '/institution-mod'
+  defaults:
+    _form: 'Drupal\institution_modifier\Form\InstitutionForm'
+    _title: 'Institution Modifier'
+  requirements:
+    _permission: 'administer site configuration'
