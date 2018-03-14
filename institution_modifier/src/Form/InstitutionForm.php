@@ -56,6 +56,7 @@ $form['submit'] = [
 // creation of form to add data to the institution table
   $form['name'] = [
     '#type' => 'textfield',
+    '#title' => $this->t('Add to the Institution Table'),
     '#size' => '25',
     '#maxlength' => '150',
     '#attributes' => ['placeholder' => t('University Of Prince Edward Island')]
