@@ -107,6 +107,12 @@ $form['table'][$counter]['Source'] = array(
 
 $counter++;
 }
+// t_download = table download
+$form['t_download'] = [
+	'#type' => 'submit',
+	'#value' => $this->t('Downlaod'),
+	'#submit' => array('::downloadForm'),
+];
 }
 else { //If no form data is received, display the input form
 
@@ -146,6 +152,7 @@ $form['quantity'] = [
 $form['actions']['download'] = [
 			'#type' => 'button',
 			'#value' => $this->t('Download'),
+			'#submit' => array('::downloadForm'),
 ];
 
 $form['actions']['display'] = [
@@ -181,6 +188,43 @@ $form_state->set('submitted', 1);
 $form_state->setRebuild();
 
 return $form;
+}
+
+public function downloadForm(array &$form, FormStateInterface $form_state)
+{
+	//$dbAdmin = new DBAdmin();
+	//$recordSet = $dbAdmin->selectAll();
+
+	$fileLocation = "sites/default/files/downloads/"; //recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
+	$fileName = "Download.csv";
+	$file = fopen($fileLocation.$fileName, "w");
+	fwrite($file, "Title,Linking ISSN,Print ISSN,Electronic ISSN, LC call number,Source"); //write header to file
+
+	foreach($recordSet as $record)
+	{
+		$printOut = "\n$record->p_issn,$record->issn_l,$record->e_issn,$record->title,$record->callnumber";
+
+		fwrite($file, $printOut);
+	}
+
+	fclose($file);
+
+
+	$fileName2 = "Download.tsv";
+	$file2 = fopen($fileLocation.$fileName2, "w");
+	fwrite($file2, "Title\tLinking ISSN\tPrint ISSN\tElectronic ISSN\tLC call number\tSource"); //write header to file
+
+	foreach($recordSet as $record)
+	{
+		$printOut2 = "\n$record->p_issn\t$record->issn_l\t$record->e_issn\t$record->title\t$record->callnumber";
+
+		fwrite($file2, $printOut2);
+	}
+
+	fclose($file2);
+
+	drupal_set_message(t("RESULT: <p>EXPORT AS: <a href=\"$fileLocation$fileName\">.csv</a>\t<a href=\"$fileLocation$fileName2\">.tsv</a></p>"));
+	return $form;
 }
 
 /**
