@@ -160,7 +160,7 @@ class SingleUploadForm extends FormBase {
 	}
 	
 	//Check LC
-	$lc = str_replace(" ", "", $lc);
+	$lc = str_replace(" ", "", $lc); //remove spaces first
 	if((preg_match($regLC, $lc) == 0 || preg_match($regLC, $lc) == false) || $lc == null) {//If the LC is invalid or is missing, line is wrong
 		$correct = false;
 		

@@ -223,7 +223,7 @@ class FileUploadForm extends FormBase {
 	Some examples of valid LCs with this regular expression: a, ab, abc, abc1, abc1234, abc1234.1, abc.1234.1234, abc.1234.1234.a1, abc.1.a123.a123
 	Some examples of invalid LCs with this regular expression: 1, abcd, a12345, a1234.12345
 
-	The problem with this is that sometimes people don't follow this format very strictly, and they put alot of 
+	The problem with this is that sometimes people don't follow this format very strictly, and they put a lot of 
 	random stuff in their LC making following a regular expression rather difficult. A few examples of this found
 	in given database: "GV723.N3 .{Ohorn}3", "GV848.5.A1 .R6514 (FRENCH) (JUV)", "GV862 .N55 INTERNET", "CA1CI51-61".
 
