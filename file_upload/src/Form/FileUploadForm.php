@@ -227,7 +227,7 @@ class FileUploadForm extends FormBase {
 	random stuff in their LC making following a regular expression rather difficult. A few examples of this found
 	in given database: "GV723.N3 .{Ohorn}3", "GV848.5.A1 .R6514 (FRENCH) (JUV)", "GV862 .N55 INTERNET", "CA1CI51-61".
 
-	If you find that this regular expression is to strict use the following instead
+	If you find that this regular expression is too strict use the following instead
 
 	$regLC = '/^([a-zA-Z]{1,3}).*$/';
 	
@@ -411,10 +411,10 @@ class FileUploadForm extends FormBase {
 				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
 			}
 				
-			//Check that at least one ISSN element has data inside
+			//Check that at least one of e or p ISSN elements has data inside
 			$existsISSN = false;
-			if(($l_issn != null) | ($p_issn != null) | ($e_issn != null)) {
-					$existsISSN = true;
+			if(($p_issn != null) || ($e_issn != null)) {
+				$existsISSN = true;
 			}
 			else {
 				$test = $form_state->get(['tabledata', $lineCount]);
@@ -495,25 +495,28 @@ class FileUploadForm extends FormBase {
 					//Search for L-ISSN
 					$results = $dbAdmin->selectByISSN($l_issn);
 					foreach($results as $entry) {
-						//If the institution is matching
-							//Delete this entry
-					
+						$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+						if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
+							$dbAdmin->deleteById($entry->id); //Delete this entry
+						}
 					}
 						
 					//Search for P-ISSN
 					$results = $dbAdmin->selectByISSN($p_issn);
 					foreach($results as $entry) {
-						//If the institution is matching
-							//Delete this entry
-							
+						$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+						if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
+							$dbAdmin->deleteById($entry->id); //Delete this entry
+						}	
 					}
 						
 					//Search for E-ISSN
 					$results = $dbAdmin->selectByISSN($p_issn);
 					foreach($results as $entry) {
-						//If the institution is matching
-							//Delete this entry
-							
+						$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+						if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
+							$dbAdmin->deleteById($entry->id); //Delete this entry
+						}	
 					}
 						
 					//Now add the new entry

@@ -121,7 +121,6 @@ class SingleUploadForm extends FormBase {
 	$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hyphen
 	$regLC = '/^([a-zA-Z]{1,3}).*$/';
 	
-	
 	$title = $form_state->getValue('title');
 	$l_issn = $form_state->getValue('l_issn');
 	$p_issn = $form_state->getValue('p_issn');
@@ -161,6 +160,7 @@ class SingleUploadForm extends FormBase {
 	}
 	
 	//Check LC
+	$lc = str_replace(" ", "", $lc);
 	if((preg_match($regLC, $lc) == 0 || preg_match($regLC, $lc) == false) || $lc == null) {//If the LC is invalid or is missing, line is wrong
 		$correct = false;
 		
@@ -235,29 +235,32 @@ class SingleUploadForm extends FormBase {
 		//Replace institution assignments
 		else if ($issnOption == 2) {
 			//Do a query for each ISSN type, look for entries with matching institution
-						
+			
 			//Search for L-ISSN
 			$results = $dbAdmin->selectByISSN($l_issn);
 			foreach($results as $entry) {
-				//If the institution is matching
-					//Delete this entry
-							
+				$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+				if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
+					$dbAdmin->deleteById($entry->id); //Delete this entry
+				}
 			}
 						
 			//Search for P-ISSN
 			$results = $dbAdmin->selectByISSN($p_issn);
 			foreach($results as $entry) {
-				//If the institution is matching
-					//Delete this entry
-							
+				$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+				if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
+					$dbAdmin->deleteById($entry->id); //Delete this entry
+				}		
 			}
 						
 			//Search for E-ISSN
 			$results = $dbAdmin->selectByISSN($p_issn);
 			foreach($results as $entry) {
-				//If the institution is matching
-					//Delete this entry
-							
+				$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+				if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
+					$dbAdmin->deleteById($entry->id); //Delete this entry
+				}			
 			}
 						
 			//Now add the new entry
