@@ -209,7 +209,7 @@ class FileUploadForm extends FormBase {
 	
 	//Regular expressions for data checking
 	//$regTitle = '/^([a-zA-Z]|\s)*$/'; //Title, any combination of letters and whitespace, or nothing since it's optional
-	$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hypen
+	$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hyphen
 	$regLC = '/^([a-zA-Z]{1,3}).*$/';
 	#$regLC = '/^([a-zA-Z]{1,3})(([0-9]{0,4})|([0-9]{0,4}\.([0-9]{1,4})))(\.[a-zA-Z][0-9]{0,3}){0,2}.*$/';
 	
@@ -435,6 +435,21 @@ class FileUploadForm extends FormBase {
 			}	
 				
 			if($correct && $existsISSN) { //If this line's data is correct and contains at least one ISSN, enter it
+			
+				//Add hyphens to ISSNs that are missing them
+				if(strlen($l_issn) == 8) {
+					$tempISSN = substr($l_issn, 0, 4) . '-' . substr($l_issn, -4, 4);
+					$l_issn = $tempISSN;
+				}
+				if(strlen($p_issn) == 8) {
+					$tempISSN = substr($p_issn, 0, 4) . '-' . substr($p_issn, -4, 4);
+					$p_issn = $tempISSN;
+				}
+				if(strlen($e_issn) == 8) {
+					$tempISSN = substr($e_issn, 0, 4) . '-' . substr($e_issn, -4, 4);
+					$e_issn = $tempISSN;
+				}
+			
 				
 				//Enter data based on which radio button was pressed
 					
