@@ -4,4 +4,4 @@ results_page.settings:
     _form: 'Drupal\results_page\Form\ResultsTable'
     _title: 'Results Page'
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'results_page access_content_perm'
