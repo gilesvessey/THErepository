@@ -1,7 +1,7 @@
 single_upload.form:
  path: '/single_upload'
  defaults:
-   _title: 'Single Uploading:'
+   _title: 'Submit One Pairing:'
    _form: '\Drupal\single_upload\Form\SingleUploadForm'
  requirements:
    _permission: 'single_upload access_content_perm'
