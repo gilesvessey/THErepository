@@ -202,7 +202,7 @@ class ResultsTable extends ConfigFormBase {
 
 		foreach($recordSet as $record)
 		{
-			$printOut = "\n$record->p_issn,$record->issn_l,$record->e_issn,$record->title,$record->callnumber";
+			$printOut = "\n$record->title,$record->issn_l,$record->p_issn,$record->e_issn,$record->callnumber";
 
 			fwrite($file, $printOut);
 		}
@@ -216,7 +216,7 @@ class ResultsTable extends ConfigFormBase {
 
 		foreach($recordSet as $record)
 		{
-			$printOut2 = "\n$record->p_issn\t$record->issn_l\t$record->e_issn\t$record->title\t$record->callnumber";
+			$printOut2 = "\n$record->title\t$record->issn_l\t$record->p_issn\t$record->e_issn\t$record->callnumber";
 
 			fwrite($file2, $printOut2);
 		}
