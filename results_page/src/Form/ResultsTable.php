@@ -24,10 +24,39 @@ $searchterm = $form_state->get('searchterm');
 
 $recordset;
 
-if ($searchtype == 'issn')
-$recordSet = $dbadmin->selectByISSN($searchterm);
+// ~~~ISSN specific input cleansing below~~~
+
+if ($searchtype === 'issn')
+{
+//$recordSet = $dbadmin->selectByISSN($searchterm);
+$recordSet = array();
+$issn_array = preg_split('/[\s]+/', $searchterm); 
+foreach ($issn_array as $issn) //turn the list of ISSNs into an array of ISSNs
+{
+$pattern = '/\s*/m';
+$issn = preg_replace($pattern, '', t($issn)); //Removes any form of white space from the ISSN we're searching for
+if (strlen($issn) < 8) //Don't search for this input if it's 7 chars or less. (newlines were getting searched for and returning everything in addition. )
+continue;
+//echo "<br />ISSN after str_replace: " . t($issn);
+
+if (strpos($issn, "-") === false) //If $issn doesn't contain a hyphen
+$issn = (substr($issn, 0, 4) . '-' . substr($issn, 4, 7)); //Put one there (breaks if anything precedes the issn, cleansing is key here)
+//echo "<br />ISSN after hyphen check: " . t($issn);
+$newRecordSet = null;
+$newRecordSet = $dbadmin->selectByISSN($issn); //gets a list of results from the next ISSN query
+foreach($newRecordSet as $record) //goes through that list of results row by row
+{
+array_push($recordSet, $record); //pushes each additional result on to the grand record set
+}
+}
+}
+
+// ~~~LCCN specific input cleansing below~~~
 else if ($searchtype == 'lccn')
 $recordSet = $dbadmin->selectByLC($searchterm);
+
+
+
 else if ($searchtype == 'all')
 $recordSet = $dbadmin->selectAll();
 
