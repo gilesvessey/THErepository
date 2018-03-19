@@ -32,23 +32,23 @@ class ResultsTable extends ConfigFormBase {
 			$recordSet = $dbadmin->selectAll();
 
 			$records = count($recordSet);
-			if ($records >= $form_state->get('resultsshown'))
-			{
+			//if ($records >= $form_state->get('resultsshown'))
+			//{
 				$form['table'] = array(
 					'#type' => 'table',
-					'#caption' => ('Showing first ' . $form_state->get('resultsshown') . ' rows out of ' . $records . ' total results.'),
+					'#caption' => ('Showing first ' . min($form_state->get('resultsshown'), $records) . ' rows out of ' . $records . ' total results.'),
 					'#empty' => 'No results to be shown.',
 					'#header' => array(
 						t('Title'),
 						t('Linking ISSN'),
 						t('Print ISSN'),
 						t('Electronic ISSN'),
-						t('LC Call Number'),
+						t('LC'),
 						t('Source'),
 					),
 				);
-			}
-			else
+			//}
+			/*else
 			{
 				$form['table'] = array(
 					'#type' => 'table',
@@ -59,11 +59,11 @@ class ResultsTable extends ConfigFormBase {
 						t('Linking ISSN'),
 						t('Print ISSN'),
 						t('Electronic ISSN'),
-						t('LC Call Number'),
+						t('LC'),
 						t('Source'),
 					),
 				);
-			}
+			}*/
 			//Print the values of each row into the table
 			$counter = 0;
 			foreach($recordSet as $record) {
@@ -95,7 +95,7 @@ class ResultsTable extends ConfigFormBase {
 				);
 
 
-				$form['table'][$counter]['LC Call Number'] = array(
+				$form['table'][$counter]['LC'] = array(
 					'#type' => 'item',
 					'#description' => $record->callnumber,
 				);
@@ -110,7 +110,7 @@ class ResultsTable extends ConfigFormBase {
 			// t_download = table download
 			$form['t_download'] = [
 				'#type' => 'submit',
-				'#value' => $this->t('Downlaod'),
+				'#value' => $this->t('Download'),
 				'#submit' => array('::downloadForm'),
 			];
 		}
@@ -198,12 +198,11 @@ class ResultsTable extends ConfigFormBase {
 		$fileLocation = "sites/default/files/downloads/"; //recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
 		$fileName = "Download.csv";
 		$file = fopen($fileLocation.$fileName, "w");
-		fwrite($file, "Title,Linking ISSN,Print ISSN,Electronic ISSN, LC call number,Source"); //write header to file
+		fwrite($file, "Title,Linking ISSN,Print ISSN,Electronic ISSN,LC call number,Source\n"); //write header to file
 
 		foreach($recordSet as $record)
 		{
-			$printOut = "\n$record->title,$record->issn_l,$record->p_issn,$record->e_issn,$record->callnumber";
-
+			$printOut = "$titlefixed,$record->issn_l,$record->p_issn,$record->e_issn,$record->callnumber\n";
 			fwrite($file, $printOut);
 		}
 
@@ -212,12 +211,11 @@ class ResultsTable extends ConfigFormBase {
 
 		$fileName2 = "Download.tsv";
 		$file2 = fopen($fileLocation.$fileName2, "w");
-		fwrite($file2, "Title\tLinking ISSN\tPrint ISSN\tElectronic ISSN\tLC call number\tSource"); //write header to file
+		fwrite($file2, "Title\tLinking ISSN\tPrint ISSN\tElectronic ISSN\tLC call number\tSource\n"); //write header to file
 
 		foreach($recordSet as $record)
 		{
-			$printOut2 = "\n$record->title\t$record->issn_l\t$record->p_issn\t$record->e_issn\t$record->callnumber";
-
+			$printOut2 = "$titlefixed\t$record->issn_l\t$record->p_issn\t$record->e_issn\t$record->callnumber\n";
 			fwrite($file2, $printOut2);
 		}
 
