@@ -238,7 +238,7 @@ class DBAdmin
 						ON user_institution.user_id = lc.user_id
 						LEFT OUTER JOIN institution
 						ON institution.id = user_institution.institution_id
-				WHERE lc.lc = '$lc';
+				WHERE lc.lc LIKE '$lc%';
 				";
 				
 		$result = db_query($sql);
