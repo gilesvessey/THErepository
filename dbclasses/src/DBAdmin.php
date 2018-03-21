@@ -385,6 +385,20 @@ class DBAdmin
 		return $id;
 	}
 	
+	public function getInstitutionName($id) 
+	{
+		$database = \Drupal::database();	
+		$result = $database->query("SELECT name FROM {institution} WHERE id = :id", [':id' => $id]);
+		
+		$name = 0;
+		
+		foreach($result as $record)
+		{
+			$name = $record->name;
+		}
+			
+		return $name;
+	}
 	
 	/*
 		For user_institution table
