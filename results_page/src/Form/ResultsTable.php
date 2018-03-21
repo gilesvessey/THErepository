@@ -23,82 +23,38 @@ class ResultsTable extends ConfigFormBase
             $dbadmin = new DBAdmin();
             $searchtype = $form_state->get('searchtype');
             $searchterm = $form_state->get('searchterm');
-            
-            $recordset;
-            // ~~~ISSN specific input cleansing below~~~
-            
-            if ($searchtype === 'issn') {
-                // $recordSet = $dbadmin->selectByISSN($searchterm);
-                $recordSet = array();
-                $issn_array = preg_split('/[\s]+/', $searchterm);
-                foreach ($issn_array as $issn) // turn the list of ISSNs into an array of ISSNs
-                {
-                    $pattern = '/\s*/m';
-                    $issn = preg_replace($pattern, '', t($issn)); // Removes any form of white space from the ISSN we're searching for
-                    if (strlen($issn) < 8) // Don't search for this input if it's 7 chars or less. (newlines were getting searched for and returning everything in addition. )
-                        continue;
-                    // echo "<br />ISSN after str_replace: " . t($issn);
-                    
-                    if (strpos($issn, "-") === false) // If $issn doesn't contain a hyphen
-                        $issn = (substr($issn, 0, 4) . '-' . substr($issn, 4, 7)); // Put one there (breaks if anything precedes the issn, cleansing is key here)
-                                                                                   // echo "<br />ISSN after hyphen check: " . t($issn);
-                    $newRecordSet = null;
-                    $newRecordSet = $dbadmin->selectByISSN($issn); // gets a list of results from the next ISSN query
-                    foreach ($newRecordSet as $record) // goes through that list of results row by row
-                    {
-                        array_push($recordSet, $record); // pushes each additional result on to the grand record set
-                    }
-                }
-            } // ~~~LCCN specific input cleansing below~~~
-            else if ($searchtype === 'lccn') {
-                $recordSet = array();
-                $lccn_array = preg_split('/[\s]+/', $searchterm);
-                
-                foreach ($lccn_array as $lccn) // turn the list of ISSNs into an array of ISSNs
-                {
-                    $pattern = '/\s*/m';
-                    $lccn = preg_replace($pattern, '', t($lccn)); // Removes any form of white space from the LC we're searching for
-                    
-                    $newRecordSet = null;
-                    $newRecordSet = $dbadmin->selectByLC($lccn); // gets a list of results from the next LC query
-                    foreach ($newRecordSet as $record) // goes through that list of results row by row
-                    {
-                        array_push($recordSet, $record); // pushes each additional result on to the grand record set
-                    }
-                }
-            } else if ($searchtype === 'all')
-                $recordSet = $dbadmin->selectAll();
+            $recordSet = $this->getRecordSet($searchtype, $searchterm);
             
             $records = count($recordSet);
-            if ($records >= $form_state->get('resultsshown')) {
-                $form['table'] = array(
-                    '#type' => 'table',
-                    '#caption' => ('Showing first ' . $form_state->get('resultsshown') . ' rows out of ' . $records . ' total results.'),
-                    '#empty' => 'No results to be shown.',
-                    '#header' => array(
-                        t('Title'),
-                        t('Linking ISSN'),
-                        t('Print ISSN'),
-                        t('Electronic ISSN'),
-                        t('LC Call Number'),
-                        t('Source')
-                    )
-                );
-            } else {
-                $form['table'] = array(
-                    '#type' => 'table',
-                    '#caption' => ('Showing first ' . $records . ' rows out of ' . $records . ' total results.'),
-                    '#empty' => 'No results to be shown.',
-                    '#header' => array(
-                        t('Title'),
-                        t('Linking ISSN'),
-                        t('Print ISSN'),
-                        t('Electronic ISSN'),
-                        t('LC Call Number'),
-                        t('Source')
-                    )
-                );
-            }
+            $form['searchtype'] = array(
+                '#type' => 'item',
+                '#description' => $searchtype
+            );
+            $form['searchterm'] = array(
+                '#type' => 'item',
+                '#description' => $searchterm
+            );
+            $form['t_download'] = [
+                '#type' => 'submit',
+                '#value' => $this->t('Download'),
+                '#submit' => array(
+                    '::downloadForm'
+                )
+            ];
+            $form['table'] = array(
+                '#type' => 'table',
+                '#caption' => ('Showing first ' . min($form_state->get('resultsshown'), $records) . ' rows out of ' . $records . ' total results.'),
+                '#empty' => 'No results to be shown.',
+                '#header' => array(
+                    t('Title'),
+                    t('Linking ISSN'),
+                    t('Print ISSN'),
+                    t('Electronic ISSN'),
+                    t('LC Call Number'),
+                    t('Source')
+                )
+            );
+            
             // Print the values of each row into the table
             $counter = 0;
             foreach ($recordSet as $record) {
@@ -150,7 +106,7 @@ class ResultsTable extends ConfigFormBase
                     1 => t('LCCN'),
                     2 => t('Display Entire Database (for testing...)')
                 ],
-                 '#default_value' => 2
+                '#default_value' => 2
             ];
             
             $form['upload_file'] = [
@@ -214,6 +170,84 @@ class ResultsTable extends ConfigFormBase
         $form_state->setRebuild();
         
         return $form;
+    }
+
+    public function downloadForm(array &$form, FormStateInterface $form_state)
+    {
+        //$recordSet = $this->getRecordSet($form_state->get('searchtype'), $form_state->get('searchterm'));
+        $dbAdmin = new DBAdmin();
+        $recordSet = $dbAdmin->selectAll();
+        $fileLocation = "sites/default/files/downloads/"; //recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
+        $fileName = "Download.csv";
+        $file = fopen($fileLocation.$fileName, "w");
+        fwrite($file, "Title,Linking ISSN,Print ISSN,Electronic ISSN,LC call number,Source\n"); //write header to file
+        foreach($recordSet as $record)
+        {
+            $printOut = "$record->title,$record->issn_l,$record->p_issn,$record->e_issn,$record->callnumber,\n";
+            fwrite($file, $printOut);
+        }
+        fclose($file);
+        $fileName2 = "Download.tsv";
+        $file2 = fopen($fileLocation.$fileName2, "w");
+        fwrite($file2, "Title\tLinking ISSN\tPrint ISSN\tElectronic ISSN\tLC call number\tSource\n"); //write header to file
+        foreach($recordSet as $record)
+        {
+            $printOut2 = "$record->title\t$record->issn_l\t$record->p_issn\t$record->e_issn\t$record->callnumber\t\n";
+            fwrite($file2, $printOut2);
+        }
+        fclose($file2);
+        drupal_set_message(t("RESULT: <p>EXPORT AS: <a href=\"$fileLocation$fileName\">.csv</a>\t<a href=\"$fileLocation$fileName2\">.tsv</a></p>"));
+        return $form;
+    }
+    
+
+    public function getRecordSet($searchtype, $searchterm)
+    {
+        $dbadmin = new DBAdmin();
+        // ~~~ISSN specific input cleansing below~~~
+        
+        if ($searchtype === 'issn') {
+            // $recordSet = $dbadmin->selectByISSN($searchterm);
+            $recordSet = array();
+            $issn_array = preg_split('/[\s]+/', $searchterm);
+            foreach ($issn_array as $issn) // turn the list of ISSNs into an array of ISSNs
+            {
+                $pattern = '/\s*/m';
+                $issn = preg_replace($pattern, '', t($issn)); // Removes any form of white space from the ISSN we're searching for
+                if (strlen($issn) < 8) // Don't search for this input if it's 7 chars or less. (newlines were getting searched for and returning everything in addition. )
+                    continue;
+                // echo "<br />ISSN after str_replace: " . t($issn);
+                
+                if (strpos($issn, "-") === false) // If $issn doesn't contain a hyphen
+                    $issn = (substr($issn, 0, 4) . '-' . substr($issn, 4, 7)); // Put one there (breaks if anything precedes the issn, cleansing is key here)
+                                                                               // echo "<br />ISSN after hyphen check: " . t($issn);
+                $newRecordSet = null;
+                $newRecordSet = $dbadmin->selectByISSN($issn); // gets a list of results from the next ISSN query
+                foreach ($newRecordSet as $record) // goes through that list of results row by row
+                {
+                    array_push($recordSet, $record); // pushes each additional result on to the grand record set
+                }
+            }
+        } // ~~~LCCN specific input cleansing below~~~
+        else if ($searchtype === 'lccn') {
+            $recordSet = array();
+            $lccn_array = preg_split('/[\s]+/', $searchterm);
+            
+            foreach ($lccn_array as $lccn) // turn the list of ISSNs into an array of ISSNs
+            {
+                $pattern = '/\s*/m';
+                $lccn = preg_replace($pattern, '', t($lccn)); // Removes any form of white space from the LC we're searching for
+                
+                $newRecordSet = null;
+                $newRecordSet = $dbadmin->selectByLC($lccn); // gets a list of results from the next LC query
+                foreach ($newRecordSet as $record) // goes through that list of results row by row
+                {
+                    array_push($recordSet, $record); // pushes each additional result on to the grand record set
+                }
+            }
+        } else if ($searchtype === 'all')
+            $recordSet = $dbadmin->selectAll();
+        return $recordSet;
     }
 
     /**
