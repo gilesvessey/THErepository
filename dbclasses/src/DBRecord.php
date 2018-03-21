@@ -14,6 +14,9 @@ class DBRecord
 	
 	public function __construct($id, $title, $source, $issn_l, $p_issn, $e_issn, $lcclass, $callnumber, $modified, $user)
 	{
+		$dbAdmin = new DBAdmin();
+		$source = $dbAdmin->getInstitutionName($user);
+		
 		$this->id = $id;
 		$this->title = $title;
 		$this->source = $source;
