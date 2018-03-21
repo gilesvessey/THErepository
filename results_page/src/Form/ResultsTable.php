@@ -174,9 +174,9 @@ class ResultsTable extends ConfigFormBase
 
     public function downloadForm(array &$form, FormStateInterface $form_state)
     {
-        //$recordSet = $this->getRecordSet($form_state->get('searchtype'), $form_state->get('searchterm'));
-        $dbAdmin = new DBAdmin();
-        $recordSet = $dbAdmin->selectAll();
+        $recordSet = $this->getRecordSet($form_state->get('searchtype'), $form_state->get('searchterm'));
+        //$dbAdmin = new DBAdmin();
+        //$recordSet = $dbAdmin->selectAll();
         $fileLocation = "sites/default/files/downloads/"; //recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
         $fileName = "Download.csv";
         $file = fopen($fileLocation.$fileName, "w");
@@ -245,7 +245,7 @@ class ResultsTable extends ConfigFormBase
                     array_push($recordSet, $record); // pushes each additional result on to the grand record set
                 }
             }
-        } else if ($searchtype === 'all')
+        } else
             $recordSet = $dbadmin->selectAll();
         return $recordSet;
     }
