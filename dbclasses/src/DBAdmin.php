@@ -5,18 +5,35 @@ class DBAdmin
 	public function insert($title, $source, $issn_l, $p_issn, $e_issn, $lcclass, $callnumber)
 	{
 		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
-		$database = \Drupal::database();	
+		$database = \Drupal::database();
+
+		$existingISSN_l = $this->selectByISSN($issn_l);
+		$existingISSN_p = $this->selectByISSN($p_issn);
+		$existingISSN_e = $this->selectByISSN($e_issn);
 		
-		$database->insert('issn');
-			$fields = [
-				'title' => $title,
-				'issn_l' => $issn_l,
-				'p_issn' => $p_issn,
-				'e_issn' => $e_issn,
-				];
-			$issn_id = $database->insert('issn')
-				->fields($fields)
-				->execute();
+		if($existingISSN_l == null && $existingISSN_p == null && $existingISSN_e == null) //only insert the ISSN if that ISSN doesn't already exist
+		{
+			//elements we don't want in our titles:
+			$titleClean = str_replace([",","\\r","\\t","\\n"]," ",$title);		
+		
+			$database->insert('issn');
+				$fields = [
+					'title' => $titleClean,
+					'issn_l' => $issn_l,
+					'p_issn' => $p_issn,
+					'e_issn' => $e_issn,
+					];
+				$issn_id = $database->insert('issn')
+					->fields($fields)
+					->execute();
+		}
+		
+		if($existingISSN_p != null && $existingISSN_p != "")
+			$issn_id = $existingISSN_p[0]->id;
+		else if($existingISSN_e != null && $existingISSN_e != "")
+			$issn_id = $existingISSN_e[0]->id;
+		else if($existingISSN_l != null && $existingISSN_l != "")
+			$issn_id = $existingISSN_l[0]->id;
 				
 		$database->insert('lc');
 			$fields = [
