@@ -7,9 +7,14 @@ class DBAdmin
 		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
 		$database = \Drupal::database();
 
-		$existingISSN_l = $this->selectByISSN($issn_l);
-		$existingISSN_p = $this->selectByISSN($p_issn);
-		$existingISSN_e = $this->selectByISSN($e_issn);
+		if($issn_l != null && $issn_l != "")
+			$existingISSN_l = $this->selectByISSN($issn_l);
+		
+		if($p_issn != null && $p_issn != "")
+			$existingISSN_p = $this->selectByISSN($p_issn);
+		
+		if($e_issn != null && $e_issn != "")
+			$existingISSN_e = $this->selectByISSN($e_issn);
 		
 		if($existingISSN_l == null && $existingISSN_p == null && $existingISSN_e == null) //only insert the ISSN if that ISSN doesn't already exist
 		{
@@ -232,6 +237,9 @@ class DBAdmin
 			$setIndex++;
 		}
 		
+		if(empty($recordSet))
+			$recordSet = null;
+		
 		return $recordSet;
 	}
 	
@@ -385,10 +393,13 @@ class DBAdmin
 		return $id;
 	}
 	
-	public function getInstitutionName($id) 
+	public function getInstitutionName($user_id) 
 	{
 		$database = \Drupal::database();	
-		$result = $database->query("SELECT name FROM {institution} WHERE id = :id", [':id' => $id]);
+		$result = $database->query("SELECT name FROM {institution} 
+									LEFT OUTER JOIN user_institution
+										ON institution_id = institution.id
+										WHERE user_id = :id", [':id' => $user_id]);
 		
 		$name = 0;
 		
