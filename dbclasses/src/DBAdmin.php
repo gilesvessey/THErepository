@@ -445,8 +445,13 @@ class DBAdmin
 		$database = \Drupal::database();
 		
 		$list = $database->query("SELECT DISTINCT field_institution_value FROM {user__field_institution}");
+
+		$output = [];
+		foreach($list as $record) {
+			array_push($output, $record->field_institution_value);
+		}
 		
-		return $list;
+		return $output;
 	}
 }
 ?>
