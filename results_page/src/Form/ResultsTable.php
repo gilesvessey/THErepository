@@ -11,16 +11,17 @@ use Drupal\dbclasses\DBRecord;
 
 class ResultsTable extends ConfigFormBase
 {
-
+    
     /**
      * This method puts the form together (defines fields).
      */
     public function buildForm(array $form, FormStateInterface $form_state)
     {
+        
         // After submission, if there were any invalid lines, print them to this table
         if ($form_state->get('submitted') === 1) {
             $config = $this->config('results_page.settings');
-            $dbadmin = new DBAdmin();
+            
             $searchtype = $form_state->get('searchtype');
             $searchterm = $form_state->get('searchterm');
             $recordSet = $this->getRecordSet($searchtype, $searchterm);
@@ -61,67 +62,81 @@ class ResultsTable extends ConfigFormBase
                 
                 if ($counter >= $form_state->get('resultsshown')) // This is what stops the page from displaying more than your requested num of results
                     break;
-                
-                $form['table'][$counter]['Title'] = array(
-                    '#type' => 'item',
-                    '#description' => $record->title
-                );
-                
-                $form['table'][$counter]['Linking ISSN'] = array(
-                    '#type' => 'item',
-                    '#description' => $record->issn_l
-                );
-                
-                $form['table'][$counter]['Print ISSN'] = array(
-                    '#type' => 'item',
-                    '#description' => $record->p_issn
-                );
-                
-                $form['table'][$counter]['Electronic ISSN'] = array(
-                    '#type' => 'item',
-                    '#description' => $record->e_issn
-                );
-                
-                $form['table'][$counter]['LC Call Number'] = array(
-                    '#type' => 'item',
-                    '#description' => $record->callnumber
-                );
-                
-                $form['table'][$counter]['Source'] = array(
-                    '#type' => 'item',
-                    '#description' => $record->source
-                );
-                
-                $counter ++;
+                    
+                    $form['table'][$counter]['Title'] = array(
+                        '#type' => 'item',
+                        '#description' => $record->title
+                    );
+                    
+                    $form['table'][$counter]['Linking ISSN'] = array(
+                        '#type' => 'item',
+                        '#description' => $record->issn_l
+                    );
+                    
+                    $form['table'][$counter]['Print ISSN'] = array(
+                        '#type' => 'item',
+                        '#description' => $record->p_issn
+                    );
+                    
+                    $form['table'][$counter]['Electronic ISSN'] = array(
+                        '#type' => 'item',
+                        '#description' => $record->e_issn
+                    );
+                    
+                    $form['table'][$counter]['LC Call Number'] = array(
+                        '#type' => 'item',
+                        '#description' => $record->callnumber
+                    );
+                    
+                    $form['table'][$counter]['Source'] = array(
+                        '#type' => 'item',
+                        '#description' => $record->source
+                    );
+                    
+                    $counter ++;
             }
         } else { // If no form data is received, display the input form
+            $connection = \Drupal::database(); //I tried making a DBAdmin method for this, could not get it to work.
+            $instList = array();
+            $query = $connection->query("SELECT * FROM {institution}");
+            $results = $query->fetchAll();
+            
+            foreach ($results as $record)
+            {
+                array_push($instList, $record->name);
+            }
+            
             
             $config = $this->config('searchInterface.settings');
             
             $form['file_content'] = [
                 '#type' => 'radios',
-                '#title' => $this->t('Search By File:'),
+                '#title' => $this->t('Data type provided:'),
                 '#options' => [
                     0 => t('ISSN'),
-                    1 => t('LCCN'),
+                    1 => t('LC'),
                     2 => t('Display Entire Database (for testing...)')
                 ],
                 '#default_value' => 2
             ];
             
-            $form['upload_file'] = [
+            $form['inputs_table'] = [
+                '#type' => 'table',
+                '#header' => [t('Paste a list...'),t('...or search with a file')]
+            ];
+            $form['inputs_table'][0]['Paste a list...'] = [
+                '#type' => 'textarea',
+                '#default_value' => $config->get('textbox'),
+                '#size' => 5
+            ];
+   
+            $form['inputs_table'][0]['...or search with a file'] = [
                 '#type' => 'file',
                 '#title' => $this->t('')
                 // '#multiple' =>
                 // '#size' =>
+                
             ];
-            
-            $form['textbox'] = [
-                '#type' => 'textarea',
-                '#title' => $this->t('...or Paste A List Below:'),
-                '#default_value' => $config->get('textbox')
-            ];
-            
             $form['quantity'] = [
                 '#type' => 'number',
                 '#title' => $this->t('# of Previewed Results:'),
@@ -130,20 +145,31 @@ class ResultsTable extends ConfigFormBase
                 '#max' => '10000',
                 '#size' => '5'
             ];
+            $form['inst_select'] = [
+                '#type' => 'multiselect',
+                '#options' => $instList,
+                '#prefix' => '<p>',
+                '#suffix' => '</p>'
+
+            ];
             
             $form['actions']['download'] = [
                 '#type' => 'button',
-                '#value' => $this->t('Download')
+                '#value' => $this->t('Download'),
+                '#prefix' => '<p>',
+                '#suffix' => '</p>'
+
             ];
             
             $form['actions']['display'] = [
                 '#type' => 'submit',
                 '#value' => $this->t('Display')
+
             ];
         }
         return $form;
     }
-
+    
     /**
      * This method will be called automatically upon submission.
      * This is the shit that gets done if the user's input passes validation.
@@ -160,39 +186,37 @@ class ResultsTable extends ConfigFormBase
             $searchterm = $form_state->getValue('textbox');
         } else if ($form_state->getValue('file_content') === '2')
             $searchtype = 'all';
-        
-        $form_state->set('searchterm', $searchterm);
-        $form_state->set('searchtype', $searchtype);
-        $form_state->set('resultsshown', $form_state->getValue('quantity'));
-        
-        // drupal_set_message(t('Search Results')); //Found this a little ugly, maybe we'll bring it back at some point
-        $form_state->set('submitted', 1);
-        $form_state->setRebuild();
-        
-        return $form;
+            
+            $form_state->set('searchterm', $searchterm);
+            $form_state->set('searchtype', $searchtype);
+            $form_state->set('resultsshown', $form_state->getValue('quantity'));
+            
+            // drupal_set_message(t('Search Results')); //Found this a little ugly, maybe we'll bring it back at some point
+            $form_state->set('submitted', 1);
+            $form_state->setRebuild();
+            
+            return $form;
     }
-
+    
     public function downloadForm(array &$form, FormStateInterface $form_state)
     {
         $recordSet = $this->getRecordSet($form_state->get('searchtype'), $form_state->get('searchterm'));
-        //$dbAdmin = new DBAdmin();
-        //$recordSet = $dbAdmin->selectAll();
-        $fileLocation = "sites/default/files/downloads/"; //recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
+        // $dbAdmin = new DBAdmin();
+        // $recordSet = $dbAdmin->selectAll();
+        $fileLocation = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
         $fileName = "Download.csv";
-        $file = fopen($fileLocation.$fileName, "w");
-        fwrite($file, "Title,Linking ISSN,Print ISSN,Electronic ISSN,LC call number,Source\n"); //write header to file
-        foreach($recordSet as $record)
-        {
-            $printOut = "$record->title,$record->issn_l,$record->p_issn,$record->e_issn,$record->callnumber,\n";
+        $file = fopen($fileLocation . $fileName, "w");
+        fwrite($file, "Title,Linking ISSN,Print ISSN,Electronic ISSN,LC call number,Source\n"); // write header to file
+        foreach ($recordSet as $record) {
+            $printOut = "$record->title,$record->issn_l,$record->p_issn,$record->e_issn,$record->callnumber,$record->source,\n";
             fwrite($file, $printOut);
         }
         fclose($file);
         $fileName2 = "Download.tsv";
-        $file2 = fopen($fileLocation.$fileName2, "w");
-        fwrite($file2, "Title\tLinking ISSN\tPrint ISSN\tElectronic ISSN\tLC call number\tSource\n"); //write header to file
-        foreach($recordSet as $record)
-        {
-            $printOut2 = "$record->title\t$record->issn_l\t$record->p_issn\t$record->e_issn\t$record->callnumber\t\n";
+        $file2 = fopen($fileLocation . $fileName2, "w");
+        fwrite($file2, "Title\tLinking ISSN\tPrint ISSN\tElectronic ISSN\tLC call number\tSource\n"); // write header to file
+        foreach ($recordSet as $record) {
+            $printOut2 = "$record->title\t$record->issn_l\t$record->p_issn\t$record->e_issn\t$record->callnumber\t$record->source\t\n";
             fwrite($file2, $printOut2);
         }
         fclose($file2);
@@ -200,7 +224,6 @@ class ResultsTable extends ConfigFormBase
         return $form;
     }
     
-
     public function getRecordSet($searchtype, $searchterm)
     {
         $dbadmin = new DBAdmin();
@@ -216,17 +239,17 @@ class ResultsTable extends ConfigFormBase
                 $issn = preg_replace($pattern, '', t($issn)); // Removes any form of white space from the ISSN we're searching for
                 if (strlen($issn) < 8) // Don't search for this input if it's 7 chars or less. (newlines were getting searched for and returning everything in addition. )
                     continue;
-                // echo "<br />ISSN after str_replace: " . t($issn);
-                
-                if (strpos($issn, "-") === false) // If $issn doesn't contain a hyphen
-                    $issn = (substr($issn, 0, 4) . '-' . substr($issn, 4, 7)); // Put one there (breaks if anything precedes the issn, cleansing is key here)
-                                                                               // echo "<br />ISSN after hyphen check: " . t($issn);
-                $newRecordSet = null;
-                $newRecordSet = $dbadmin->selectByISSN($issn); // gets a list of results from the next ISSN query
-                foreach ($newRecordSet as $record) // goes through that list of results row by row
-                {
-                    array_push($recordSet, $record); // pushes each additional result on to the grand record set
-                }
+                    // echo "<br />ISSN after str_replace: " . t($issn);
+                    
+                    if (strpos($issn, "-") === false) // If $issn doesn't contain a hyphen
+                        $issn = (substr($issn, 0, 4) . '-' . substr($issn, 4, 7)); // Put one there (breaks if anything precedes the issn, cleansing is key here)
+                        // echo "<br />ISSN after hyphen check: " . t($issn);
+                        $newRecordSet = null;
+                        $newRecordSet = $dbadmin->selectByISSN($issn); // gets a list of results from the next ISSN query
+                        foreach ($newRecordSet as $record) // goes through that list of results row by row
+                        {
+                            array_push($recordSet, $record); // pushes each additional result on to the grand record set
+                        }
             }
         } // ~~~LCCN specific input cleansing below~~~
         else if ($searchtype === 'lccn') {
@@ -247,9 +270,9 @@ class ResultsTable extends ConfigFormBase
             }
         } else
             $recordSet = $dbadmin->selectAll();
-        return $recordSet;
+            return $recordSet;
     }
-
+    
     /**
      *
      * {@inheritdoc}
@@ -260,7 +283,7 @@ class ResultsTable extends ConfigFormBase
             'results_page.settings'
         ];
     }
-
+    
     /**
      *
      * {@inheritdoc}
