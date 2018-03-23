@@ -440,5 +440,13 @@ class DBAdmin
 		
 		return $institutionName;
 	}
+	
+	public function getInstitutions() {
+		$database = \Drupal::database();
+		
+		$list = $database->query("SELECT DISTINCT field_institution_value FROM {user__field_institution}");
+		
+		return $list;
+	}
 }
 ?>
