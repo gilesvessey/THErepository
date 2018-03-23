@@ -14,6 +14,9 @@ class DBRecord
 	
 	public function __construct($id, $title, $source, $issn_l, $p_issn, $e_issn, $lcclass, $callnumber, $modified, $user)
 	{
+		$dbAdmin = new DBAdmin();
+		$source = \Drupal\user\Entity\User::load($user)->get("field_institution")->value;
+		
 		$this->id = $id;
 		$this->title = $title;
 		$this->source = $source;

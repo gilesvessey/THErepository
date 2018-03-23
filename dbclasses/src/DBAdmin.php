@@ -5,18 +5,40 @@ class DBAdmin
 	public function insert($title, $source, $issn_l, $p_issn, $e_issn, $lcclass, $callnumber)
 	{
 		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
-		$database = \Drupal::database();	
+		$database = \Drupal::database();
+
+		if($issn_l != null && $issn_l != "")
+			$existingISSN_l = $this->selectByISSN($issn_l);
 		
-		$database->insert('issn');
-			$fields = [
-				'title' => $title,
-				'issn_l' => $issn_l,
-				'p_issn' => $p_issn,
-				'e_issn' => $e_issn,
-				];
-			$issn_id = $database->insert('issn')
-				->fields($fields)
-				->execute();
+		if($p_issn != null && $p_issn != "")
+			$existingISSN_p = $this->selectByISSN($p_issn);
+		
+		if($e_issn != null && $e_issn != "")
+			$existingISSN_e = $this->selectByISSN($e_issn);
+		
+		if($existingISSN_l == null && $existingISSN_p == null && $existingISSN_e == null) //only insert the ISSN if that ISSN doesn't already exist
+		{
+			//elements we don't want in our titles:
+			$titleClean = str_replace([",","\\r","\\t","\\n"]," ",$title);		
+		
+			$database->insert('issn');
+				$fields = [
+					'title' => $titleClean,
+					'issn_l' => $issn_l,
+					'p_issn' => $p_issn,
+					'e_issn' => $e_issn,
+					];
+				$issn_id = $database->insert('issn')
+					->fields($fields)
+					->execute();
+		}
+		
+		if($existingISSN_p != null && $existingISSN_p != "")
+			$issn_id = $existingISSN_p[0]->id;
+		else if($existingISSN_e != null && $existingISSN_e != "")
+			$issn_id = $existingISSN_e[0]->id;
+		else if($existingISSN_l != null && $existingISSN_l != "")
+			$issn_id = $existingISSN_l[0]->id;
 				
 		$database->insert('lc');
 			$fields = [
@@ -189,9 +211,9 @@ class DBAdmin
 						ON user_institution.user_id = lc.user_id
 						LEFT OUTER JOIN institution
 						ON institution.id = user_institution.institution_id
-				WHERE issn.issn_l LIKE '$issn%'
-					OR issn.p_issn LIKE '$issn%'
-					OR issn.e_issn LIKE '$issn%'; 
+				WHERE issn.issn_l = '$issn'
+					OR issn.p_issn = '$issn'
+					OR issn.e_issn = '$issn'; 
 				";
 				
 		$result = db_query($sql);
@@ -214,6 +236,9 @@ class DBAdmin
 			$recordSet[$setIndex]  = new DBRecord($id, $title, $source, $issn_l, $p_issn, $e_issn, '', $callnumber, $modified, $user);
 			$setIndex++;
 		}
+		
+		if(empty($recordSet))
+			$recordSet = null;
 		
 		return $recordSet;
 	}
@@ -238,7 +263,7 @@ class DBAdmin
 						ON user_institution.user_id = lc.user_id
 						LEFT OUTER JOIN institution
 						ON institution.id = user_institution.institution_id
-				WHERE lc.lc = '$lc';
+				WHERE lc.lc LIKE '$lc%';
 				";
 				
 		$result = db_query($sql);
@@ -368,6 +393,23 @@ class DBAdmin
 		return $id;
 	}
 	
+	public function getInstitutionName($user_id) 
+	{
+		$database = \Drupal::database();	
+		$result = $database->query("SELECT name FROM {institution} 
+									LEFT OUTER JOIN user_institution
+										ON institution_id = institution.id
+										WHERE user_id = :id", [':id' => $user_id]);
+		
+		$name = 0;
+		
+		foreach($result as $record)
+		{
+			$name = $record->name;
+		}
+			
+		return $name;
+	}
 	
 	/*
 		For user_institution table
@@ -384,6 +426,32 @@ class DBAdmin
 				->execute();
 				
 			return $id;
+	}
+	
+	//Takes in a user and returns the corresponding institution name
+	public function getUserInstitution($user) {
+		$database = \Drupal::database();
+		
+		//Get user's institution ID
+		$institutionID = $database->query("SELECT institution_id FROM {user_institution} WHERE user_id = :user", [':user' => $user]);
+		
+		//Get the name of the institution from the ID
+		$institutionName = $database->query("SELECT name FROM {institution} WHERE id = :institutionID", [':institutionID' => $institutionID]);
+		
+		return $institutionName;
+	}
+	
+	public function getInstitutions() {
+		$database = \Drupal::database();
+		
+		$list = $database->query("SELECT DISTINCT field_institution_value FROM {user__field_institution}");
+
+		$output = [];
+		foreach($list as $record) {
+			array_push($output, $record->field_institution_value);
+		}
+		
+		return $output;
 	}
 }
 ?>

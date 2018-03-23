@@ -1,0 +1,5 @@
+name: Institution Modifier
+description: Modifies the institution table.
+type: module
+core: 8.x
+package: Custom

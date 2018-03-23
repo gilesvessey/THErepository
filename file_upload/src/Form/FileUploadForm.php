@@ -1,12 +1,12 @@
 <?php
 namespace Drupal\file_upload\Form;
-
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\dbclasses\DBAdmin;
 use Drupal\dbclasses\DBRecord;
-
+use Drupal\Core\File\File;
 class FileUploadForm extends FormBase {
+	
   public function buildForm(array $form, FormStateInterface $form_state) {
 	  
 	//After submission, if there were any invalid lines, print them to this table
@@ -19,7 +19,7 @@ class FileUploadForm extends FormBase {
 				t('p_issn'),
 				t('e_issn'),
 				t('l_issn'),
-				t('callnumber'),
+				t('lc'),
 				t('title'),
 				t('Reason(s)'),
 			),
@@ -53,8 +53,8 @@ class FileUploadForm extends FormBase {
 				'#description' => $row[3],
 			);
 			
-			//Callnumber
-			$form['table'][$counter]['callnumber'] = array(
+			//LC
+			$form['table'][$counter]['lc'] = array(
 				'#type' => 'item',
 				'#description' => $row[4],
 			);
@@ -80,7 +80,6 @@ class FileUploadForm extends FormBase {
 		$form['info_link'] = [
 			'#type' => 'item',
 			'#markup' => "<a href='uploadinfo' target='_blank'>For more info about upload requirements, click here.</a>",
-			
 		];
 			
 		//File upload element
@@ -88,26 +87,42 @@ class FileUploadForm extends FormBase {
 			'#type' => 'managed_file',
 			'#title' => t('Upload a file into the database here:'),
 			'#size' => 20,
-			'#upload_validators' => array('file_validate_extensions' => array('csv')),
-			//'#upload_validators' => $validators,
-			//'#upload_location' => 'public://my_files/',
+			'#upload_location' => 'public://uploads/',
+			'#upload_validators' => array('file_validate_extensions' => array('csv tsv')),
+			'#required' => true,
 		];
 		
 			
-		//Radio buttons for choosing how duplicate LC assignments are handled, 
-		// 1 -> Add new ones and don't delete anything
-		// 2 -> Add new ones and delete entries with matching ISSNs and user ID
-		// 3 -> Add new ones and delete entries with matching ISSNs and institution
-		$form['issn_option'] = [
-			'#type' => 'radios',
-			'#title' => ('For matching ISSNs:'),
-			'#default_value' => 0,
-			'#options' => array(
-				0 =>t('Add new LC assignments'),
-				1 =>t('Replace existing LC assignments (Owned by me)'),
-				2 =>t('Replace existing LC assignments (Owned by my institution)')
-			),
-		];
+		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
+			
+		//If the user is an institutional editor, show the third button
+		if($user->hasRole('editorial_user')) {
+			//Radio buttons for choosing how duplicate LC assignments are handled, 
+			// 1 -> Add new ones and don't delete anything
+			// 2 -> Add new ones and delete entries with matching ISSNs and user ID
+			// 3 -> Add new ones and delete entries with matching ISSNs and institution
+			$form['issn_option'] = [
+				'#type' => 'radios',
+				'#title' => ('For matching ISSNs:'),
+				'#default_value' => 0,
+				'#options' => array(
+					0 =>t('Add new LC assignments'),
+					1 =>t('Replace existing LC assignments (Owned by me)'),
+					2 =>t('Replace existing LC assignments (Owned by my institution)')
+				),
+			];
+		}
+		else { //Otherwise only show two
+			$form['issn_option'] = [
+				'#type' => 'radios',
+				'#title' => ('For matching ISSNs:'),
+				'#default_value' => 0,
+				'#options' => array(
+					0 =>t('Add new LC assignments'),
+					1 =>t('Replace existing LC assignments (Owned by me)'),
+				),
+			];
+		}
 				
 		//Submit button
 		$form['submit'] = [
@@ -118,40 +133,9 @@ class FileUploadForm extends FormBase {
 	
     return $form;
   }
-
 	
 	
    public function validateForm(array &$form, FormStateInterface $form_state) {
-
-     	
-		//$file = file_save_upload('file_upload');
-		//$form_state->setValue('file_upload', $file);
-		
-		//if (!isset($file)) {
-		//	form_set_error('file_upload', t('Error the file didnt work!!!.'));
-		//}
-		//else {
-			//if(isset($file)) {
-			
-			//}
-		//}
-		
-		
-		
-		/*
-		if (isset($file)) {
-			// File upload was attempted.
-				if ($file) {
-				 // Put the temporary file in form_values so we can save it on submit.
-					 $form_state['values']['file_upload'] = $file;
-			 }
-			 else {
-				// File upload failed.
-					form_set_error('file_upload', t('The file could not be uploaded.'));
-				}
-		}
-		*/
-
     }
 	
 	
@@ -160,28 +144,58 @@ class FileUploadForm extends FormBase {
     // Handle submitted values in $form_state here.
 	$dbAdmin = new DBAdmin();
 	
-	//Need to read in the file
-	//Read the headers, make sure they are all there, and note the order of them.
-	//As we're reading we need to check for missing required fields. If there's something missing, just don't upload that file. Store the data in an array of bad lines.
-	//Need to store the line number as we go.
-	//Need to verify the data of each thing, using regular expressions.
-	//Will need to find out the delimiter used somehow, eg. , or tab, or whatever
-	//Need to get the LC class from the callnumber, why do we need the lc class even ??
-	//Idk if nulls are working yet ???
+	$database = \Drupal::database(); //Drupal saves references in its database to all files uploaded via managed_file
+	$sql = "SELECT uri FROM file_managed WHERE status=0 ORDER BY fid DESC LIMIT 1;"; //find the uri of the file just added
+	$result = db_query($sql);
+	$fileLocation = '';
+	$fileExtension = '';
 	
-	//$file = file_save_upload('file_upload');
-	//$form_state['values']['file_upload'] = $file;
+	foreach($result as $record)
+	{
+		$fileLocation = $record->uri;
+		//public:// is the folder that Drupal allows users to download/access files from, etc
+		$fileLocation = str_replace('public://', 'sites/default/files/', $fileLocation); //format the file location properly
+	}
 	
-	//$file = $form_state->getValue('file_upload');
+	$file = []; //instantiate $file which will be an array of arrays
+	$headers = [];
+	$isHeader = TRUE;
 	
-	//$filepath = $form_state['values']['file_upload']->$filepath;
-	//$handle = @fopen($file, "r");
-	
-	//test data in place of actual file data
-	$file = [['1234', '1324', '1423', 'pepperini55', 'AC23'],
-			 ['82718391', '57682819', '58671875', 'Pizza', '6C34'],
-			 ['88932187', '85319289', '86428476', 'lemon boy', 'CC23']
-			];
+	//determine delimiter
+	$fileExtension = pathinfo($fileLocation, PATHINFO_EXTENSION);
+	$delimiter = '';
+	if($fileExtension == 'tsv')
+		$delimiter = "\t";
+	else //default is comma
+		$delimiter = ',';
+		
+	$fileHandle = fopen($fileLocation, "rw"); //open file
+	if($fileHandle) //if no error
+	{		
+		while (!feof($fileHandle)) { //until end of file...
+			$record = fgets($fileHandle); //each line in the file is one record
+			
+			if($isHeader) //first line of file is header...
+			{
+				$tempHeaders = [];
+				array_push($tempHeaders,explode("$delimiter",$record));
+				$headers[0] = trim($tempHeaders[0][0]); //trim to make sure no trailing white space or line breaks
+				$headers[1] = trim($tempHeaders[0][1]);
+				$headers[2] = trim($tempHeaders[0][2]);
+				$headers[3] = trim($tempHeaders[0][3]);
+				$headers[4] = trim($tempHeaders[0][4]);
+				$isHeader = FALSE;
+			}
+			else
+			{
+				array_push($file,explode("$delimiter",$record)); //each record is itself an array of items (ISSN, title, etc)
+			}
+		}
+		
+		fclose($fileHandle);
+	} else { //problem in opening file
+		echo "Unable to access file.";
+	}
 	
 	//Get the user's id to put as the source
 	$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
@@ -192,22 +206,36 @@ class FileUploadForm extends FormBase {
 	
 	//Regular expressions for data checking
 	//$regTitle = '/^([a-zA-Z]|\s)*$/'; //Title, any combination of letters and whitespace, or nothing since it's optional
-	$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hypen
-	$regLCCN = '/^[a-zA-Z]([a-zA-Z]|[0-9]|.|-|\s)*$/'; //Will hold the LCCN regex
+	$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hyphen
+	$regLC = '/^([a-zA-Z]{1,3}).*$/';
+	#$regLC = '/^([a-zA-Z]{1,3})(([0-9]{0,4})|([0-9]{0,4}\.([0-9]{1,4})))(\.[a-zA-Z][0-9]{0,3}){0,2}.*$/';
+	
+	/*
+	The above commented regLC enforces pretty strict formatting for LCs. The format is the following:
+	1-3 letters (for the class) followed by, 
+	0-4 digits or 0-4 digits followed be a dot followed by another 0-4 digits for the subject (subject is optional) followed by,
+	1 letter followed by up to 3 letters for a cutter. You can have 0-2 cutters.
+	Anything after that is ok
+	Some examples of valid LCs with this regular expression: a, ab, abc, abc1, abc1234, abc1234.1, abc.1234.1234, abc.1234.1234.a1, abc.1.a123.a123
+	Some examples of invalid LCs with this regular expression: 1, abcd, a12345, a1234.12345
+	The problem with this is that sometimes people don't follow this format very strictly, and they put a lot of 
+	random stuff in their LC making following a regular expression rather difficult. A few examples of this found
+	in given database: "GV723.N3 .{Ohorn}3", "GV848.5.A1 .R6514 (FRENCH) (JUV)", "GV862 .N55 INTERNET", "CA1CI51-61".
+	If you find that this regular expression is too strict use the following instead
+	$regLC = '/^([a-zA-Z]{1,3}).*$/';
+	
+	If in the future, you discover you want to be that strict with the formatting of lcs, use that line instead.
+	.*/
 	
 	$headersCorrect = true; //Holds whether the headers are correct or not
 	
 	//Test headers in place of file headers
-	$headerTest = ['p_issn', 'l_issn', 'e_issn', 'title', 'callnumber']; //Example first line of file
-		
-	//Read in the headers from first line of file	
-	//$headers = fgetcsv($file);
-	$headers = $headerTest;
-
+	//$headerTest = ['p_issn', 'l_issn', 'e_issn', 'title', 'lc']; //Example first line of file
 	//Check that there are 5 elements in the header
 	if(count($headers) != 5) {
 		$headersCorrect = false;
-		drupal_set_message('Wrong number of elements in header', 'error');
+		$numOfHeaders = count($headers);
+		drupal_set_message("Wrong number of elements in header ($numOfHeaders present instead of 5)", 'error');
 	}
 	else {
 		//Get positions for each piece of input data based on the headers
@@ -215,11 +243,11 @@ class FileUploadForm extends FormBase {
 		$p_issnPos = -1;
 		$l_issnPos = -1;
 		$e_issnPos = -1;
-		$callnumberPos = -1;
+		$lcPos = -1;
 		
 		$counter = 0; //Current header position
 		
-		//Headers must be of title, p_issn, l_issn, e_issn, callnumber
+		//Headers must be of title, p_issn, l_issn, e_issn, lc
 		foreach($headers as $header) {
 			if(strcmp($header,'title') == 0)  {
 				if($titlePos != -1) { //If title already was assigned, headers are wrong
@@ -257,13 +285,13 @@ class FileUploadForm extends FormBase {
 					$e_issnPos = $counter;
 				}
 			}
-			else if(strcmp($header,'callnumber') == 0)  {
-				if($callnumberPos != -1) { //If callnumber already was assigned, headers are wrong
+			else if(strcmp($header,'lc') == 0)  {
+				if($lcPos != -1) { //If lc already was assigned, headers are wrong
 					$headersCorrect = false;
-					drupal_set_message('callnumber column appears twice in header', 'error');
+					drupal_set_message('LC column appears twice in header', 'error');
 				}
 				else { //Otherwise get the position
-					$callnumberPos = $counter;
+					$lcPos = $counter;
 				}
 			}
 			else { //If the header value is none of the accepted values, header is wrong
@@ -282,8 +310,6 @@ class FileUploadForm extends FormBase {
 		$errorCount = 0; //Holds number of invalid lines
 		
 		foreach($file as $line) {
-		//while(! feof($file)) {
-			//$line = fgetcsv($file);
 			
 			$lineCount++; //Increment line counter	
 				
@@ -292,7 +318,7 @@ class FileUploadForm extends FormBase {
 			$l_issn = $line[$l_issnPos];
 			$p_issn = $line[$p_issnPos];
 			$e_issn = $line[$e_issnPos];
-			$callnumber = $line[$callnumberPos];
+			$lc = $line[$lcPos];
 				
 			//Verify the data is correct
 			$correct = true; //For checking if the data is correct
@@ -310,7 +336,7 @@ class FileUploadForm extends FormBase {
 					$reason = 'Invalid title';
 				}
 				
-				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $callnumber, $title, $reason]);
+				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
 			}
 			*/
 			
@@ -326,7 +352,7 @@ class FileUploadForm extends FormBase {
 					$reason = 'Invalid l_issn';
 				}
 				
-				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $callnumber, $title, $reason]);
+				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
 			}
 			
 			//Check P-ISSN
@@ -341,7 +367,7 @@ class FileUploadForm extends FormBase {
 					$reason = "Invalid p_issn";
 				}
 				
-				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $callnumber, $title, $reason]);
+				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
 			}
 			
 			//Check E-ISSN
@@ -356,27 +382,31 @@ class FileUploadForm extends FormBase {
 					$reason = "Invalid e_issn";
 				}
 				
-				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $callnumber, $title, $reason]);
+				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
 			}
-			//Check LCCN
-			if((preg_match($regLCCN, $callnumber) == 0 | preg_match($regLCCN, $callnumber) == false) || $callnumber == null) {//If the LCCN is invalid or is missing, line is wrong
+			//Check LC
+			
+			//to make things easier, we will trim the whitespace out of the lc, and check the trimmed lc for validation instead.
+			$trimmed_lc = str_replace(' ', '', $lc);
+			
+			if((preg_match($regLC, $trimmed_lc) == 0 | preg_match($regLC, $trimmed_lc) == false) || $trimmed_lc == null) {//If the LC is invalid or is missing, line is wrong
 				$correct = false;
 				
 				$test = $form_state->get(['tabledata', $lineCount]);
 				if(isset($test)) { //If error is already present on line concatenate the reason
-					$reason .= ", Invalid callnumber";
+					$reason .= ", Invalid lc";
 				}
 				else { //Otherwise create a new error reason
-					$reason = "Invalid callnumber";
+					$reason = "Invalid lc";
 				}
 				
-				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $callnumber, $title, $reason]);
+				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
 			}
 				
-			//Check that at least one ISSN element has data inside
+			//Check that at least one of e or p ISSN elements has data inside
 			$existsISSN = false;
-			if(($l_issn != null) | ($p_issn != null) | ($e_issn != null)) {
-					$existsISSN = true;
+			if(($p_issn != null) || ($e_issn != null)) {
+				$existsISSN = true;
 			}
 			else {
 				$test = $form_state->get(['tabledata', $lineCount]);
@@ -387,7 +417,7 @@ class FileUploadForm extends FormBase {
 					$reason = 'No issn values present';
 				}
 				
-				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $callnumber, $title, $reason]);
+				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
 				
 			}
 			
@@ -397,12 +427,27 @@ class FileUploadForm extends FormBase {
 			}	
 				
 			if($correct && $existsISSN) { //If this line's data is correct and contains at least one ISSN, enter it
+			
+				//Add hyphens to ISSNs that are missing them
+				if(strlen($l_issn) == 8) {
+					$tempISSN = substr($l_issn, 0, 4) . '-' . substr($l_issn, -4, 4);
+					$l_issn = $tempISSN;
+				}
+				if(strlen($p_issn) == 8) {
+					$tempISSN = substr($p_issn, 0, 4) . '-' . substr($p_issn, -4, 4);
+					$p_issn = $tempISSN;
+				}
+				if(strlen($e_issn) == 8) {
+					$tempISSN = substr($e_issn, 0, 4) . '-' . substr($e_issn, -4, 4);
+					$e_issn = $tempISSN;
+				}
+			
 				
 				//Enter data based on which radio button was pressed
 					
 				//Add new assignments, nothing special
 				if ($issnOption == 0) {
-					$dbAdmin->insert($title, $uid, $l_issn, $p_issn, $e_issn, 0, $callnumber);
+					$dbAdmin->insert($title, $uid, $l_issn, $p_issn, $e_issn, 0, $lc);
 				}
 				//Replace own assignments
 				else if ($issnOption == 1) {
@@ -433,7 +478,7 @@ class FileUploadForm extends FormBase {
 					}
 						
 					//Now add the new entry
-					$dbAdmin->insert($title, $uid, $l_issn, $p_issn, $e_issn, 0, $callnumber);
+					$dbAdmin->insert($title, $uid, $l_issn, $p_issn, $e_issn, 0, $lc);
 				}
 				//Replace institution assignments
 				else if ($issnOption == 2) {
@@ -442,35 +487,36 @@ class FileUploadForm extends FormBase {
 					//Search for L-ISSN
 					$results = $dbAdmin->selectByISSN($l_issn);
 					foreach($results as $entry) {
-						//If the institution is matching
-							//Delete this entry
-					
+						$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+						if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
+							$dbAdmin->deleteById($entry->id); //Delete this entry
+						}
 					}
 						
 					//Search for P-ISSN
 					$results = $dbAdmin->selectByISSN($p_issn);
 					foreach($results as $entry) {
-						//If the institution is matching
-							//Delete this entry
-							
+						$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+						if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
+							$dbAdmin->deleteById($entry->id); //Delete this entry
+						}	
 					}
 						
 					//Search for E-ISSN
 					$results = $dbAdmin->selectByISSN($p_issn);
 					foreach($results as $entry) {
-						//If the institution is matching
-							//Delete this entry
-							
+						$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+						if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
+							$dbAdmin->deleteById($entry->id); //Delete this entry
+						}	
 					}
 						
 					//Now add the new entry
-					$dbAdmin->insert($title, $uid, $l_issn, $p_issn, $e_issn, 0, $callnumber);
+					$dbAdmin->insert($title, $uid, $l_issn, $p_issn, $e_issn, 0, $lc);
 				}
 			}
 		}
 	}
-	
-	//$fclose($file); //Close the file
 	
 	if($headersCorrect) {
 		drupal_set_message("Upload Complete");
@@ -486,14 +532,12 @@ class FileUploadForm extends FormBase {
 	return $form;
 }
   
-
   protected function getEditableConfigNames() {
     return [
       'file_upload_form.settings',
     ];
   }
   
-
   public function getFormId() {
     return 'file_upload_form';
   }
