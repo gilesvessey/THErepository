@@ -229,8 +229,6 @@ class FileUploadForm extends FormBase {
 	
 	$headersCorrect = true; //Holds whether the headers are correct or not
 	
-	//Test headers in place of file headers
-	//$headerTest = ['p_issn', 'l_issn', 'e_issn', 'title', 'lc']; //Example first line of file
 	//Check that there are 5 elements in the header
 	if(count($headers) != 5) {
 		$headersCorrect = false;
@@ -495,7 +493,8 @@ class FileUploadForm extends FormBase {
 						$results = $dbAdmin->selectByISSN($l_issn);
 						foreach($results as $entry) {
 							$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-							if(strcmp($dbAdmin->getUserInstitution($user), $entryInstitution) == 0) { //If the institutions are the same
+							$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
+							if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
 								$dbAdmin->deleteLCById($entry->id); //Delete this entry
 							}
 						}
@@ -506,20 +505,22 @@ class FileUploadForm extends FormBase {
 						$results = $dbAdmin->selectByISSN($p_issn);
 						foreach($results as $entry) {
 							$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-							if(strcmp($dbAdmin->getUserInstitution($user), $entryInstitution) == 0) { //If the institutions are the same
+							$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
+							if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
 								$dbAdmin->deleteLCById($entry->id); //Delete this entry
-							}	
+							}		
 						}
 					}
 						
-					if($e_issn != null) {
+					if($e_issn != null) {			
 						//Search for E-ISSN
 						$results = $dbAdmin->selectByISSN($p_issn);
 						foreach($results as $entry) {
 							$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-							if(strcmp($dbAdmin->getUserInstitution($user), $entryInstitution) == 0) { //If the institutions are the same
+							$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
+							if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
 								$dbAdmin->deleteLCById($entry->id); //Delete this entry
-							}	
+							}			
 						}
 					}
 						
