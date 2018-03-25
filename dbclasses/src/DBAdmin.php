@@ -7,13 +7,13 @@ class DBAdmin
 		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
 		$database = \Drupal::database();
 
-		if($issn_l != 0 && $issn_l != "")
+		if($issn_l != 0)
 			$existingISSN_l = $this->getISSNId($issn_l);
 		
-		if($p_issn != 0 && $p_issn != "")
+		if($p_issn != 0)
 			$existingISSN_p = $this->getISSNId($p_issn);
 		
-		if($e_issn != 0 && $e_issn != "")
+		if($e_issn != 0)
 			$existingISSN_e = $this->getISSNId($e_issn);
 		
 		if($existingISSN_l == 0 && $existingISSN_p == 0 && $existingISSN_e == 0) //only insert the ISSN if that ISSN doesn't already exist
