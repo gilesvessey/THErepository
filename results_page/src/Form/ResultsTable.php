@@ -24,7 +24,9 @@ class ResultsTable extends ConfigFormBase
             
             $searchtype = $form_state->get('searchtype');
             $searchterm = $form_state->get('searchterm');
-            $recordSet = $this->getRecordSet($searchtype, $searchterm);
+            $institutions = $form_state->get('institutions');
+            $recordSet = $this->getRecordSet($searchtype, $searchterm, $institutions);
+            $form_state->getValue('multiselect');
             
             $records = count($recordSet);
             $form['searchtype'] = array(
@@ -96,17 +98,9 @@ class ResultsTable extends ConfigFormBase
                     $counter ++;
             }
         } else { // If no form data is received, display the input form
-            $connection = \Drupal::database(); //I tried making a DBAdmin method for this, could not get it to work.
-            $instList = array();
-            $query = $connection->query("SELECT * FROM {institution}");
-            $results = $query->fetchAll();
-            
-            foreach ($results as $record)
-            {
-                array_push($instList, $record->name);
-            }
-            
-            
+            $dbadmin = new DBAdmin();
+
+            $instList = $dbadmin->getInstitutions();
             $config = $this->config('searchInterface.settings');
             
             $form['file_content'] = [
@@ -122,8 +116,10 @@ class ResultsTable extends ConfigFormBase
             
             $form['inputs_table'] = [
                 '#type' => 'table',
-                '#header' => [t('Paste a list...'),t('...or search with a file')],
-                '#suffix' => '<p>'
+                '#header' => [
+                    t('Paste a list...'),
+                    t('...or search with a file')
+                ]       
             ];
             $form['inputs_table'][0]['Paste a list...'] = [
                 '#type' => 'textarea',
@@ -133,17 +129,17 @@ class ResultsTable extends ConfigFormBase
             
             $form['inputs_table'][0]['...or search with a file'] = [
                 '#type' => 'file',
-                '#title' => $this->t('')
-                // '#multiple' =>
-                // '#size' =>
+                '#title' => $this->t('')           
+            ];
+            
+            $form['multiselect'] = [
+                '#type' => 'select',
+                '#options' => $instList,
+                '#multiple' => TRUE,
+                '#validated' => TRUE
                 
             ];
             
-            $form['inputs_table'][1]['Paste a list...'] = [
-                '#type' => 'multiselect',
-                '#options' => $instList
-                
-            ];
             $form['quantity'] = [
                 '#type' => 'number',
                 '#title' => $this->t('# of Previewed Results:'),
@@ -153,16 +149,15 @@ class ResultsTable extends ConfigFormBase
                 '#size' => '5'
             ];
             
-            $form['actions']['download'] = [
+            $form['download'] = [
                 '#type' => 'button',
                 '#value' => $this->t('Download')
                 
             ];
             
-            $form['actions']['display'] = [
+            $form['display'] = [
                 '#type' => 'submit',
                 '#value' => $this->t('Display'),
-                '#suffix' => '</p>'
                 
             ];
         }
@@ -175,19 +170,31 @@ class ResultsTable extends ConfigFormBase
      */
     public function submitForm(array &$form, FormStateInterface $form_state)
     {
-        
+        $dbadmin = new DBAdmin();
+        $input_table = $form_state->getValue('inputs_table');
         // Handle submitted values in $form_state here.
         if ($form_state->getValue('file_content') === '0') {
             $searchtype = 'issn';
-            $searchterm = $form_state->getValue('textbox');
+            $searchterm = $input_table[0]['Paste a list...']; // This is the text box field
         } else if ($form_state->getValue('file_content') === '1') {
             $searchtype = 'lccn';
-            $searchterm = $form_state->getValue('textbox');
+            $searchterm = $input_table[0]['Paste a list...'];
         } else if ($form_state->getValue('file_content') === '2')
             $searchtype = 'all';
+            $multiselect = $form_state->getValue('multiselect');
+            
+            $instList = $dbadmin->getInstitutions();
+            $chosenInstList = array();
+            $f=0;
+            foreach ($multiselect as $key)
+            {
+                $chosenInstList[$f] = $instList[$key];
+                $f++;
+            }
             
             $form_state->set('searchterm', $searchterm);
             $form_state->set('searchtype', $searchtype);
+            $form_state->set('institutions', $chosenInstList);
             $form_state->set('resultsshown', $form_state->getValue('quantity'));
             
             // drupal_set_message(t('Search Results')); //Found this a little ugly, maybe we'll bring it back at some point
@@ -199,9 +206,7 @@ class ResultsTable extends ConfigFormBase
     
     public function downloadForm(array &$form, FormStateInterface $form_state)
     {
-        $recordSet = $this->getRecordSet($form_state->get('searchtype'), $form_state->get('searchterm'));
-        // $dbAdmin = new DBAdmin();
-        // $recordSet = $dbAdmin->selectAll();
+        $recordSet = $this->getRecordSet($form_state->get('searchtype'), $form_state->get('searchterm'), $form_state->get('institutions'));
         $fileLocation = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
         $fileName = "Download.csv";
         $file = fopen($fileLocation . $fileName, "w");
@@ -220,10 +225,10 @@ class ResultsTable extends ConfigFormBase
         }
         fclose($file2);
         drupal_set_message(t("RESULT: <p>EXPORT AS: <a href=\"$fileLocation$fileName\">.csv</a>\t<a href=\"$fileLocation$fileName2\">.tsv</a></p>"));
-        return $form;
+        //return $form;
     }
     
-    public function getRecordSet($searchtype, $searchterm)
+    public function getRecordSet($searchtype, $searchterm, $institutions)
     {
         $dbadmin = new DBAdmin();
         // ~~~ISSN specific input cleansing below~~~
@@ -238,16 +243,15 @@ class ResultsTable extends ConfigFormBase
                 $issn = preg_replace($pattern, '', t($issn)); // Removes any form of white space from the ISSN we're searching for
                 if (strlen($issn) < 8) // Don't search for this input if it's 7 chars or less. (newlines were getting searched for and returning everything in addition. )
                     continue;
-                    // echo "<br />ISSN after str_replace: " . t($issn);
                     
                     if (strpos($issn, "-") === false) // If $issn doesn't contain a hyphen
                         $issn = (substr($issn, 0, 4) . '-' . substr($issn, 4, 7)); // Put one there (breaks if anything precedes the issn, cleansing is key here)
-                        // echo "<br />ISSN after hyphen check: " . t($issn);
                         $newRecordSet = null;
                         $newRecordSet = $dbadmin->selectByISSN($issn); // gets a list of results from the next ISSN query
                         foreach ($newRecordSet as $record) // goes through that list of results row by row
                         {
-                            array_push($recordSet, $record); // pushes each additional result on to the grand record set
+                            if (in_array($record->source, $institutions, FALSE)) //If this result is from one of the accepted institutions...
+                            array_push($recordSet, $record); // push it onto the grand record set.
                         }
             }
         } // ~~~LCCN specific input cleansing below~~~
@@ -264,11 +268,19 @@ class ResultsTable extends ConfigFormBase
                 $newRecordSet = $dbadmin->selectByLC($lccn); // gets a list of results from the next LC query
                 foreach ($newRecordSet as $record) // goes through that list of results row by row
                 {
+                    if (in_array($record->source, $institutions, FALSE))
                     array_push($recordSet, $record); // pushes each additional result on to the grand record set
                 }
             }
         } else
-            $recordSet = $dbadmin->selectAll();
+            $recordSet = array();
+            $newRecordSet = $dbadmin->selectAll();
+        
+            foreach ($newRecordSet as $record)
+            {
+                if (in_array($record->source, $institutions, FALSE))
+                    array_push($recordSet, $record);
+            }
             return $recordSet;
     }
     
@@ -292,4 +304,4 @@ class ResultsTable extends ConfigFormBase
         return 'results_page_settings';
     }
 }
-?>t
+?>
