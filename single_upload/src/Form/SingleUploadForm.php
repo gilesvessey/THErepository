@@ -12,7 +12,7 @@ class SingleUploadForm extends FormBase {
 	//Link to info page. Opens in a new window/tab
 	$form['info_link'] = [
 		'#type' => 'item',
-		'#markup' => "<a href='uploadinfo' target='_blank'>For more info about upload requirements, click here.</a>",
+		'#markup' => "<a href='about_upload' target='_blank'>For more info about upload requirements, click here.</a>",
 		
 	];
 	
