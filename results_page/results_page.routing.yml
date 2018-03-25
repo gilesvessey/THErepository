@@ -2,6 +2,6 @@ results_page.settings:
   path: '/results_page'
   defaults:
     _form: 'Drupal\results_page\Form\ResultsTable'
-    _title: 'Results Page'
+    _title: 'ISSN <--> LC Lookup'
   requirements:
     _permission: 'results_page access_content_perm'
