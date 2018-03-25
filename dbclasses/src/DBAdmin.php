@@ -303,9 +303,9 @@ class DBAdmin
 		$sql = "SELECT 
 					issn.id as id					
 				FROM issn
-				WHERE issn.issn_l = $issn
-					OR issn.p_issn = $issn
-					OR issn.e_issn = $issn;
+				WHERE issn.issn_l = '$issn'
+					OR issn.p_issn = '$issn'
+					OR issn.e_issn = '$issn';
 				";
 				
 		$result = db_query($sql);
