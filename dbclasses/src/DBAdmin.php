@@ -431,9 +431,9 @@ class DBAdmin
 			return $id;
 	}
 	
-	//Takes in a user and returns the corresponding institution name
-	public function getUserInstitution($user) {
-		return \Drupal\user\Entity\User::load($user)->get("field_institution")->value;
+	//Takes in a user id and returns the corresponding institution name
+	public function getUserInstitution($uid) {
+		return \Drupal\user\Entity\User::load($uid)->get("field_institution")->value;
 	}
 	
 	public function getInstitutions() {
