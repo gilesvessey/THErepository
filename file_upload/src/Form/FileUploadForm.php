@@ -557,14 +557,17 @@ class FileUploadForm extends FormBase {
 	$fileLocation = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
 	$fileName = "Invalids.txt";
 	$file = fopen($fileLocation . $fileName, "w");
-	fwrite($file, "Line#\tp_issn\te_issn\tl_issn\tlc\ttitle\tReason(s)\n"); // write header to file
+	fwrite($file, "Line#,p_issn,e_issn,l_issn,lc,title,Reason(s)\n"); //write header to file
 	foreach($form_state->get('tabledata') as $row) {
-        foreach ($recordSet as $record) {
-            $printOut = "$row[0]\t$row[1]\t$row[2]\t$row[3]\t$row[4]\t$row[5]\t$row[6]\n";
-            fwrite($file, $printOut);
-        }
-        fclose($file);
+        $printOut = "$row[0],$row[1],$row[2],$row[3],$row[4],$row[5],$row[6]\n"; //write each invalid line
+        fwrite($file, $printOut);
 	}
+	fclose($file);
+	header('Content-Description: File Transfer');
+    header('Content-Type: application/octet-stream');
+	header('Content-Disposition: attachment; filename="'.$fileName.'"');
+	readfile($fileLocation . $fileName);
+	exit;
   }
   
   protected function getEditableConfigNames() {
