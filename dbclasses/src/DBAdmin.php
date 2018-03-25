@@ -7,16 +7,16 @@ class DBAdmin
 		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
 		$database = \Drupal::database();
 
-		if($issn_l != null && $issn_l != "")
+		if($issn_l != 0 && $issn_l != "")
 			$existingISSN_l = $this->getISSNId($issn_l);
 		
-		if($p_issn != null && $p_issn != "")
+		if($p_issn != 0 && $p_issn != "")
 			$existingISSN_p = $this->getISSNId($p_issn);
 		
-		if($e_issn != null && $e_issn != "")
+		if($e_issn != 0 && $e_issn != "")
 			$existingISSN_e = $this->getISSNId($e_issn);
 		
-		if($existingISSN_l == null && $existingISSN_p == null && $existingISSN_e == null) //only insert the ISSN if that ISSN doesn't already exist
+		if($existingISSN_l == 0 && $existingISSN_p == 0 && $existingISSN_e == 0) //only insert the ISSN if that ISSN doesn't already exist
 		{
 			//elements we don't want in our titles:
 			$titleClean = str_replace([",","\\r","\\t","\\n"]," ",$title);		
