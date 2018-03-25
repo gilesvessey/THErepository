@@ -17,8 +17,6 @@ class ResultsTable extends ConfigFormBase
      */
     public function buildForm(array $form, FormStateInterface $form_state)
     {
-        
-        // After submission, if there were any invalid lines, print them to this table
         if ($form_state->get('submitted') === 1) {
             $config = $this->config('results_page.settings');
             

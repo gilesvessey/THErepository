@@ -11,6 +11,14 @@ class FileUploadForm extends FormBase {
 	  
 	//After submission, if there were any invalid lines, print them to this table
 	if($form_state->get('submitted') == 1 && $form_state->get('lineError') == 1) {
+		$form['t_download'] = [
+                '#type' => 'submit',
+                '#value' => $this->t('Download'),
+                '#submit' => array(
+                    '::downloadForm'
+                )
+		];
+		
 		$form['table'] = array(
 			'#type' => 'table',
 			'#prefix' => "<b>Invalid Lines:</b>",
@@ -304,7 +312,7 @@ class FileUploadForm extends FormBase {
 	
 	if($headersCorrect){ //Only read in data if the headers are correct
 	
-		$lineCount = 0; //Holds current line number
+		$lineCount = 1; //Holds current line number, starts at 1 because of headers
 		$errorCount = 0; //Holds number of invalid lines
 		
 		foreach($file as $line) {
@@ -543,7 +551,21 @@ class FileUploadForm extends FormBase {
 	}
 	
 	return $form;
-}
+  }
+
+  public function downloadForm(array &$form, FormStateInterface $form_state) {
+	$fileLocation = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
+	$fileName = "Invalids.txt";
+	$file = fopen($fileLocation . $fileName, "w");
+	fwrite($file, "Line#\tp_issn\te_issn\tl_issn\tlc\ttitle\tReason(s)\n"); // write header to file
+	foreach($form_state->get('tabledata') as $row) {
+        foreach ($recordSet as $record) {
+            $printOut = "$row[0]\t$row[1]\t$row[2]\t$row[3]\t$row[4]\t$row[5]\t$row[6]\n";
+            fwrite($file, $printOut);
+        }
+        fclose($file);
+	}
+  }
   
   protected function getEditableConfigNames() {
     return [

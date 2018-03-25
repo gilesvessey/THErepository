@@ -11,7 +11,7 @@
 		
 		//Get the extension by matching with a regular expression
 		$ext = array();
-		preg_match('/@(.*?)\./s', $email, $ext);
+		preg_match('/@.+$/', $email, $ext);
 		
 		$extension = $ext[1];
 		
@@ -25,10 +25,7 @@
 			$account->save();
 		}
 		
-		
 		//Add to the user institution table
 		$id = $dbAdmin->getInstitutionID($account->get('field_institution')->value); //Get the id from the name of the institution
-		$dbAdmin->insertUser($uid, $id);
-		
 	}
 ?>
