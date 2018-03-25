@@ -13,7 +13,7 @@ class FileUploadForm extends FormBase {
 	if($form_state->get('submitted') == 1 && $form_state->get('lineError') == 1) {
 		$form['t_download'] = [
                 '#type' => 'submit',
-				'#prefix' => "<b>Invalid Lines:</b>",
+				'#prefix' => "<b>Invalid Lines:</b><br>",
                 '#value' => $this->t('Download'),
                 '#submit' => array(
                     '::downloadForm'
