@@ -8,13 +8,13 @@ class DBAdmin
 		$database = \Drupal::database();
 
 		if($issn_l != null && $issn_l != "")
-			$existingISSN_l = $this->selectByISSN($issn_l);
+			$existingISSN_l = $this->getISSNId($issn_l);
 		
 		if($p_issn != null && $p_issn != "")
-			$existingISSN_p = $this->selectByISSN($p_issn);
+			$existingISSN_p = $this->getISSNId($p_issn);
 		
 		if($e_issn != null && $e_issn != "")
-			$existingISSN_e = $this->selectByISSN($e_issn);
+			$existingISSN_e = $this->getISSNId($e_issn);
 		
 		if($existingISSN_l == null && $existingISSN_p == null && $existingISSN_e == null) //only insert the ISSN if that ISSN doesn't already exist
 		{
@@ -33,12 +33,12 @@ class DBAdmin
 					->execute();
 		}
 		
-		if($existingISSN_p != null && $existingISSN_p != "")
-			$issn_id = $existingISSN_p[0]->id;
-		else if($existingISSN_e != null && $existingISSN_e != "")
-			$issn_id = $existingISSN_e[0]->id;
-		else if($existingISSN_l != null && $existingISSN_l != "")
-			$issn_id = $existingISSN_l[0]->id;
+		if($existingISSN_p != 0)
+			$issn_id = $existingISSN_p;
+		else if($existingISSN_e != 0)
+			$issn_id = $existingISSN_e;
+		else if($existingISSN_l != 0)
+			$issn_id = $existingISSN_l;
 				
 		$database->insert('lc');
 			$fields = [
@@ -57,7 +57,7 @@ class DBAdmin
 	{
 		$database = \Drupal::database();
 		$sql = "SELECT 
-					issn.id as id,
+					lc.id as id,
 					issn.title as title,
 					issn.issn_l as issn_l,
 					issn.p_issn as p_issn,
@@ -104,7 +104,7 @@ class DBAdmin
 	{
 		$database = \Drupal::database();
 		$sql = "SELECT 
-					issn.id as id,
+					lc.id as id,
 					issn.title as title,
 					issn.issn_l as issn_l,
 					issn.p_issn as p_issn,
@@ -148,7 +148,7 @@ class DBAdmin
 	{
 		$database = \Drupal::database();
 		$sql = "SELECT 
-					issn.id as id,
+					lc.id as id,
 					issn.title as title,
 					issn.issn_l as issn_l,
 					issn.p_issn as p_issn,
@@ -195,7 +195,7 @@ class DBAdmin
 	{
 		$database = \Drupal::database();
 		$sql = "SELECT 
-					issn.id as id,
+					lc.id as id,
 					issn.title as title,
 					issn.issn_l as issn_l,
 					issn.p_issn as p_issn,
@@ -247,7 +247,7 @@ class DBAdmin
 	{
 		$database = \Drupal::database();
 		$sql = "SELECT 
-					issn.id as id,
+					lc.id as id,
 					issn.title as title,
 					issn.issn_l as issn_l,
 					issn.p_issn as p_issn,
