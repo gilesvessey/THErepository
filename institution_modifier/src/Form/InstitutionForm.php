@@ -9,6 +9,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\dbclasses\DBAdmin;
 use Drupal\dbclasses\DBRecord;
 
+
+
 class InstitutionForm extends ConfigFormBase {
   //creates the form
   public function buildForm(array $form, FormStateInterface $form_state) {
@@ -16,9 +18,8 @@ class InstitutionForm extends ConfigFormBase {
       * establishes a connection to the database and fetch all information
       * from the institution table.
     **/
-  $connection = \Drupal::database();
-  $query = $connection->query("SELECT * FROM {institution}");
-  $results = $query->fetchAll();
+$dbadmin = new DBAdmin();
+$results = $dbadmin->getInstitutionTable();
 
 // Creates a header for the table to be displayed
   $header = [
@@ -33,9 +34,9 @@ $i=0;
 foreach ($results as $record)
 {
        $output[$i] = [
-         'id' => $record->id,
-         'Name' => $record->name,
-         'Domain' => $record->domain,
+         'id' => $record[0],
+         'Name' => $record[1],
+         'Domain' => $record[2]
        ];
        $i++;
      }
