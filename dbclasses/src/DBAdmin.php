@@ -296,6 +296,9 @@ class DBAdmin
 		returns a single int (ID)
 		returns a 0 on no result
 		*/
+		if($issn == '')
+			$issn = 0;
+		
 		$database = \Drupal::database();
 		$sql = "SELECT 
 					issn.id as id					
