@@ -16,7 +16,7 @@ class DBAdmin
 		if($e_issn != 0 && e_issn != ')
 			$existingISSN_e = $this->getISSNId($e_issn);
 		
-		if($existingISSN_l == 0 && $existingISSN_p == 0 && $existingISSN_e == 0) //only insert the ISSN if that ISSN doesn't already exist
+		if($existingISSN_l == null && $existingISSN_p == null && $existingISSN_e == null) //only insert the ISSN if that ISSN doesn't already exist
 		{
 			//elements we don't want in our titles:
 			$titleClean = str_replace([",","\\r","\\t","\\n"]," ",$title);		
@@ -33,11 +33,11 @@ class DBAdmin
 					->execute();
 		}
 		
-		if($existingISSN_p != 0)
+		if($existingISSN_p != null)
 			$issn_id = $existingISSN_p;
-		else if($existingISSN_e != 0)
+		else if($existingISSN_e != null)
 			$issn_id = $existingISSN_e;
-		else if($existingISSN_l != 0)
+		else if($existingISSN_l != null)
 			$issn_id = $existingISSN_l;
 				
 		$database->insert('lc');
@@ -310,10 +310,7 @@ class DBAdmin
 				
 		$result = db_query($sql);
 		
-		$recordSet = array();
-		$setIndex = 0;
-		
-		$id = 0;
+		$id = null;
 		
 		foreach($result as $record)
 		{
