@@ -7,6 +7,10 @@ class DBAdmin
 		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
 		$database = \Drupal::database();
 
+		$existingISSN_l = null;
+		$existingISSN_p = null;
+		$existingISSN_e = null;
+		
 		if($issn_l != 0 && $issn_l != '')
 			$existingISSN_l = $this->getISSNId($issn_l);
 		

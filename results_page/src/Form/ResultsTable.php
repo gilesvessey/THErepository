@@ -171,6 +171,7 @@ class ResultsTable extends ConfigFormBase
         $dbadmin = new DBAdmin();
         $input_table = $form_state->getValue('inputs_table');
         // Handle submitted values in $form_state here.
+		$searchterm = " ";
         if ($form_state->getValue('file_content') === '0') {
             $searchtype = 'issn';
             $searchterm = $input_table[0]['Paste a list...']; // This is the text box field
@@ -179,27 +180,28 @@ class ResultsTable extends ConfigFormBase
             $searchterm = $input_table[0]['Paste a list...'];
         } else if ($form_state->getValue('file_content') === '2')
             $searchtype = 'all';
-            $multiselect = $form_state->getValue('multiselect');
+		
+        $multiselect = $form_state->getValue('multiselect');
             
-            $instList = $dbadmin->getInstitutions();
-            $chosenInstList = array();
-            $f=0;
-            foreach ($multiselect as $key)
-            {
-                $chosenInstList[$f] = $instList[$key];
-                $f++;
-            }
+        $instList = $dbadmin->getInstitutions();
+        $chosenInstList = array();
+        $f=0;
+        foreach ($multiselect as $key)
+        {
+            $chosenInstList[$f] = $instList[$key];
+            $f++;
+        }
             
-            $form_state->set('searchterm', $searchterm);
-            $form_state->set('searchtype', $searchtype);
-            $form_state->set('institutions', $chosenInstList);
-            $form_state->set('resultsshown', $form_state->getValue('quantity'));
+        $form_state->set('searchterm', $searchterm);
+        $form_state->set('searchtype', $searchtype);
+        $form_state->set('institutions', $chosenInstList);
+        $form_state->set('resultsshown', $form_state->getValue('quantity'));
             
-            // drupal_set_message(t('Search Results')); //Found this a little ugly, maybe we'll bring it back at some point
-            $form_state->set('submitted', 1);
-            $form_state->setRebuild();
+        // drupal_set_message(t('Search Results')); //Found this a little ugly, maybe we'll bring it back at some point
+        $form_state->set('submitted', 1);
+        $form_state->setRebuild();
             
-            return $form;
+        return $form;
     }
     
     public function downloadForm(array &$form, FormStateInterface $form_state)
