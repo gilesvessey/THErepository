@@ -450,6 +450,7 @@ class DBAdmin
         
         $list = $database->query("SELECT * FROM {institution}");
         
+		$i = 0;
         $output = [];
 		foreach($list as $record) {
 			$output[$i] = [$record->id, $record->name, $record->domain];
