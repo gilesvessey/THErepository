@@ -199,7 +199,7 @@ class SingleUploadForm extends FormBase {
 		else if ($issnOption == 1) {
 			//Do a query for each ISSN type, look for entries with matching user ID
 			
-			if($l_issn != '') {
+			if($l_issn != null) {
 				//Search for L-ISSN
 				$results = $dbAdmin->selectByISSN($l_issn);
 				foreach($results as $entry) {
@@ -209,7 +209,7 @@ class SingleUploadForm extends FormBase {
 				}
 			}
 					
-			if($p_issn != '') {
+			if($p_issn != null) {
 				//Search for P-ISSN
 				$results = $dbAdmin->selectByISSN($p_issn);
 				foreach($results as $entry) {
@@ -219,7 +219,7 @@ class SingleUploadForm extends FormBase {
 				}
 			}
 				
-			if($e_issn != '') {
+			if($e_issn != null) {
 				//Search for E-ISSN
 				$results = $dbAdmin->selectByISSN($e_issn);
 				foreach($results as $entry) {
