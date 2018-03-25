@@ -335,7 +335,7 @@ class DBAdmin
 	public function deleteLCById($id)
 	{
 		$database = \Drupal::database();	
-		$result = $database->query("DELETE FROM {lc} WHERE issn_id = :id", [':id' => $id]);
+		$result = $database->query("DELETE FROM {lc} WHERE id = :id", [':id' => $id]);
 		
 		return "$id deleted.";
 	}
