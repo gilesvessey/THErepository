@@ -460,5 +460,4 @@ class DBAdmin
 
     }
 }
-}
 ?>
