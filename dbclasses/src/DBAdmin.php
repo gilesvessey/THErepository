@@ -57,7 +57,7 @@ class DBAdmin
 	{
 		$database = \Drupal::database();
 		$sql = "SELECT 
-					lc.id as id,
+					issn.id as id,
 					issn.title as title,
 					issn.issn_l as issn_l,
 					issn.p_issn as p_issn,
@@ -104,7 +104,7 @@ class DBAdmin
 	{
 		$database = \Drupal::database();
 		$sql = "SELECT 
-					lc.id as id,
+					issn.id as id,
 					issn.title as title,
 					issn.issn_l as issn_l,
 					issn.p_issn as p_issn,
@@ -148,7 +148,7 @@ class DBAdmin
 	{
 		$database = \Drupal::database();
 		$sql = "SELECT 
-					lc.id as id,
+					issn.id as id,
 					issn.title as title,
 					issn.issn_l as issn_l,
 					issn.p_issn as p_issn,
@@ -195,7 +195,7 @@ class DBAdmin
 	{
 		$database = \Drupal::database();
 		$sql = "SELECT 
-					lc.id as id,
+					issn.id as id,
 					issn.title as title,
 					issn.issn_l as issn_l,
 					issn.p_issn as p_issn,
@@ -247,7 +247,7 @@ class DBAdmin
 	{
 		$database = \Drupal::database();
 		$sql = "SELECT 
-					lc.id as id,
+					issn.id as id,
 					issn.title as title,
 					issn.issn_l as issn_l,
 					issn.p_issn as p_issn,
@@ -335,7 +335,7 @@ class DBAdmin
 	public function deleteLCById($id)
 	{
 		$database = \Drupal::database();	
-		$result = $database->query("DELETE FROM {lc} WHERE id = :id", [':id' => $id]);
+		$result = $database->query("DELETE FROM {lc} WHERE issn_id = :id", [':id' => $id]);
 		
 		return "$id deleted.";
 	}
