@@ -452,5 +452,21 @@ class DBAdmin
 		
 		return $output;
 	}
+	
+	public function getInstitutionTable() {
+        $database = \Drupal::database();
+        
+        $list = $database->query("SELECT * FROM {institution}");
+        
+        $output = [];
+		foreach($list as $record) {
+			$output[$i] = [$record->id, $record->name, $record->domain];
+                        $i++;
+		}
+		
+		return $output;
+
+    }
+}
 }
 ?>
