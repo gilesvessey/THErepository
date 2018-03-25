@@ -99,7 +99,7 @@ class ResultsTable extends ConfigFormBase
             }
         } else { // If no form data is received, display the input form
             $dbadmin = new DBAdmin();
-            
+
             $instList = $dbadmin->getInstitutions();
             $config = $this->config('searchInterface.settings');
             
@@ -119,7 +119,7 @@ class ResultsTable extends ConfigFormBase
                 '#header' => [
                     t('Paste a list...'),
                     t('...or search with a file')
-                ]
+                ]       
             ];
             $form['inputs_table'][0]['Paste a list...'] = [
                 '#type' => 'textarea',
@@ -129,7 +129,7 @@ class ResultsTable extends ConfigFormBase
             
             $form['inputs_table'][0]['...or search with a file'] = [
                 '#type' => 'file',
-                '#title' => $this->t('')
+                '#title' => $this->t('')           
             ];
             
             $form['multiselect'] = [
@@ -251,7 +251,7 @@ class ResultsTable extends ConfigFormBase
                         foreach ($newRecordSet as $record) // goes through that list of results row by row
                         {
                             if (in_array($record->source, $institutions, FALSE)) //If this result is from one of the accepted institutions...
-                                array_push($recordSet, $record); // push it onto the grand record set.
+                            array_push($recordSet, $record); // push it onto the grand record set.
                         }
             }
         } // ~~~LCCN specific input cleansing below~~~
@@ -269,13 +269,13 @@ class ResultsTable extends ConfigFormBase
                 foreach ($newRecordSet as $record) // goes through that list of results row by row
                 {
                     if (in_array($record->source, $institutions, FALSE))
-                        array_push($recordSet, $record); // pushes each additional result on to the grand record set
+                    array_push($recordSet, $record); // pushes each additional result on to the grand record set
                 }
             }
         } else
             $recordSet = array();
             $newRecordSet = $dbadmin->selectAll();
-            
+        
             foreach ($newRecordSet as $record)
             {
                 if (in_array($record->source, $institutions, FALSE))
