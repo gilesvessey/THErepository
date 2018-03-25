@@ -68,7 +68,7 @@ class DBAdmin
 					lc.user_id as user_id					
 				FROM lc
 				LEFT OUTER JOIN issn
-					ON issn.id = lc.issn.id
+					ON issn.id = lc.issn_id
 					LEFT OUTER JOIN user_institution
 						ON user_institution.user_id = lc.user_id
 						LEFT OUTER JOIN institution
@@ -115,7 +115,7 @@ class DBAdmin
 					lc.user_id as user_id					
 				FROM lc
 				LEFT OUTER JOIN issn
-					ON issn.id = lc.issn.id
+					ON issn.id = lc.issn_id
 					LEFT OUTER JOIN user_institution
 						ON user_institution.user_id = lc.user_id
 						LEFT OUTER JOIN institution
@@ -159,7 +159,7 @@ class DBAdmin
 					lc.user_id as user_id					
 				FROM lc
 				LEFT OUTER JOIN issn
-					ON issn.id = lc.issn.id
+					ON issn.id = lc.issn_id
 					LEFT OUTER JOIN user_institution
 						ON user_institution.user_id = lc.user_id
 						LEFT OUTER JOIN institution
@@ -206,7 +206,7 @@ class DBAdmin
 					lc.user_id as user_id					
 				FROM lc
 				LEFT OUTER JOIN issn
-					ON issn.id = lc.issn.id
+					ON issn.id = lc.issn_id
 					LEFT OUTER JOIN user_institution
 						ON user_institution.user_id = lc.user_id
 						LEFT OUTER JOIN institution
@@ -258,7 +258,7 @@ class DBAdmin
 					lc.user_id as user_id					
 				FROM lc
 				LEFT OUTER JOIN issn
-					ON issn.id = lc.issn.id
+					ON issn.id = lc.issn_id
 					LEFT OUTER JOIN user_institution
 						ON user_institution.user_id = lc.user_id
 						LEFT OUTER JOIN institution
