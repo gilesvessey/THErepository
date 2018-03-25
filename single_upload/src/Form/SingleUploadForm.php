@@ -241,7 +241,8 @@ class SingleUploadForm extends FormBase {
 				$results = $dbAdmin->selectByISSN($l_issn);
 				foreach($results as $entry) {
 					$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-					if(strcmp($dbAdmin->getUserInstitution($user), $entryInstitution) == 0) { //If the institutions are the same
+					$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
+					if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
 						$dbAdmin->deleteLCById($entry->id); //Delete this entry
 					}
 				}
@@ -252,7 +253,8 @@ class SingleUploadForm extends FormBase {
 				$results = $dbAdmin->selectByISSN($p_issn);
 				foreach($results as $entry) {
 					$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-					if(strcmp($dbAdmin->getUserInstitution($user), $entryInstitution) == 0) { //If the institutions are the same
+					$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
+					if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
 						$dbAdmin->deleteLCById($entry->id); //Delete this entry
 					}		
 				}
@@ -263,7 +265,8 @@ class SingleUploadForm extends FormBase {
 				$results = $dbAdmin->selectByISSN($p_issn);
 				foreach($results as $entry) {
 					$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-					if(strcmp($dbAdmin->getUserInstitution($user), $entryInstitution) == 0) { //If the institutions are the same
+					$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
+					if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
 						$dbAdmin->deleteLCById($entry->id); //Delete this entry
 					}			
 				}
