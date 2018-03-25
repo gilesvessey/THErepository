@@ -204,7 +204,7 @@ class SingleUploadForm extends FormBase {
 				$results = $dbAdmin->selectByISSN($l_issn);
 				foreach($results as $entry) {
 					if($entry->user == $uid) { //If the uid is matching
-						$dbAdmin->deleteById($entry->id);
+						$dbAdmin->deleteLCById($entry->id);
 					}
 				}
 			}
@@ -214,7 +214,7 @@ class SingleUploadForm extends FormBase {
 				$results = $dbAdmin->selectByISSN($p_issn);
 				foreach($results as $entry) {
 					if($entry->user == $uid) { //If the uid is matching
-						$dbAdmin->deleteById($entry->id);
+						$dbAdmin->deleteLCById($entry->id);
 					}
 				}
 			}
@@ -224,7 +224,7 @@ class SingleUploadForm extends FormBase {
 				$results = $dbAdmin->selectByISSN($e_issn);
 				foreach($results as $entry) {
 					if($entry->user == $uid) { //If the uid is matching
-						$dbAdmin->deleteById($entry->id);
+						$dbAdmin->deleteLCById($entry->id);
 					}
 				}
 			}
@@ -241,7 +241,7 @@ class SingleUploadForm extends FormBase {
 			foreach($results as $entry) {
 				$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
 				if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
-					$dbAdmin->deleteById($entry->id); //Delete this entry
+					$dbAdmin->deleteLCById($entry->id); //Delete this entry
 				}
 			}
 						
@@ -250,7 +250,7 @@ class SingleUploadForm extends FormBase {
 			foreach($results as $entry) {
 				$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
 				if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
-					$dbAdmin->deleteById($entry->id); //Delete this entry
+					$dbAdmin->deleteLCById($entry->id); //Delete this entry
 				}		
 			}
 						
@@ -259,7 +259,7 @@ class SingleUploadForm extends FormBase {
 			foreach($results as $entry) {
 				$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
 				if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
-					$dbAdmin->deleteById($entry->id); //Delete this entry
+					$dbAdmin->deleteLCById($entry->id); //Delete this entry
 				}			
 			}
 						
