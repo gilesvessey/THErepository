@@ -65,17 +65,10 @@ class DBAdmin
 					issn.modified as modified,
 					institution.name as name,
 					lc.lc as lc,
-<<<<<<< HEAD
 					lc.user_id as user_id
 				FROM issn
 				LEFT OUTER JOIN lc
 					ON lc.issn_id = issn.id
-=======
-					lc.user_id as user_id					
-				FROM lc
-				LEFT OUTER JOIN issn
-					ON issn.id = lc.issn_id
->>>>>>> 690ec7b8044fc74b4f80cc5c7c2b1d65ac42e46b
 					LEFT OUTER JOIN user_institution
 						ON user_institution.user_id = lc.user_id
 						LEFT OUTER JOIN institution
@@ -119,17 +112,10 @@ class DBAdmin
 					issn.modified as modified,
 					institution.name as name,
 					lc.lc as lc,
-<<<<<<< HEAD
 					lc.user_id as user_id
 				FROM issn
 				LEFT OUTER JOIN lc
 					ON lc.issn_id = issn.id
-=======
-					lc.user_id as user_id					
-				FROM lc
-				LEFT OUTER JOIN issn
-					ON issn.id = lc.issn_id
->>>>>>> 690ec7b8044fc74b4f80cc5c7c2b1d65ac42e46b
 					LEFT OUTER JOIN user_institution
 						ON user_institution.user_id = lc.user_id
 						LEFT OUTER JOIN institution
@@ -170,17 +156,10 @@ class DBAdmin
 					issn.modified as modified,
 					institution.name as name,
 					lc.lc as lc,
-<<<<<<< HEAD
 					lc.user_id as user_id
 				FROM issn
 				LEFT OUTER JOIN lc
 					ON lc.issn_id = issn.id
-=======
-					lc.user_id as user_id					
-				FROM lc
-				LEFT OUTER JOIN issn
-					ON issn.id = lc.issn_id
->>>>>>> 690ec7b8044fc74b4f80cc5c7c2b1d65ac42e46b
 					LEFT OUTER JOIN user_institution
 						ON user_institution.user_id = lc.user_id
 						LEFT OUTER JOIN institution
@@ -224,17 +203,10 @@ class DBAdmin
 					issn.modified as modified,
 					institution.name as name,
 					lc.lc as lc,
-<<<<<<< HEAD
 					lc.user_id as user_id
 				FROM issn
 				LEFT OUTER JOIN lc
 					ON lc.issn_id = issn.id
-=======
-					lc.user_id as user_id					
-				FROM lc
-				LEFT OUTER JOIN issn
-					ON issn.id = lc.issn_id
->>>>>>> 690ec7b8044fc74b4f80cc5c7c2b1d65ac42e46b
 					LEFT OUTER JOIN user_institution
 						ON user_institution.user_id = lc.user_id
 						LEFT OUTER JOIN institution
@@ -283,17 +255,10 @@ class DBAdmin
 					issn.modified as modified,
 					institution.name as name,
 					lc.lc as lc,
-<<<<<<< HEAD
 					lc.user_id as user_id
 				FROM issn
 				LEFT OUTER JOIN lc
 					ON lc.issn_id = issn.id
-=======
-					lc.user_id as user_id					
-				FROM lc
-				LEFT OUTER JOIN issn
-					ON issn.id = lc.issn_id
->>>>>>> 690ec7b8044fc74b4f80cc5c7c2b1d65ac42e46b
 					LEFT OUTER JOIN user_institution
 						ON user_institution.user_id = lc.user_id
 						LEFT OUTER JOIN institution
@@ -434,7 +399,6 @@ class DBAdmin
 									LEFT OUTER JOIN user_institution
 										ON institution_id = institution.id
 										WHERE user_id = :id", [':id' => $user_id]);
-<<<<<<< HEAD
         
         $name = 0;
         
@@ -501,52 +465,5 @@ class DBAdmin
         
         return $output;
     }
-=======
-		
-		$name = 0;
-		
-		foreach($result as $record)
-		{
-			$name = $record->name;
-		}
-			
-		return $name;
-	}
-	
-	/*
-		For user_institution table
-	*/
-	public function insertUser($user, $institution) {
-		$database = \Drupal::database();	
-		$database->insert('user_institution');
-			$fields = [
-				'user_id' => $user,
-				'institution_id' => $institution,
-				];
-			$id = $database->insert('user_institution')
-				->fields($fields)
-				->execute();
-				
-			return $id;
-	}
-	
-	//Takes in a user and returns the corresponding institution name
-	public function getUserInstitution($user) {
-		return \Drupal\user\Entity\User::load($user)->get("field_institution")->value;
-	}
-	
-	public function getInstitutions() {
-		$database = \Drupal::database();
-		
-		$list = $database->query("SELECT DISTINCT field_institution_value FROM {user__field_institution}");
-
-		$output = [];
-		foreach($list as $record) {
-			array_push($output, $record->field_institution_value);
-		}
-		
-		return $output;
-	}
->>>>>>> 690ec7b8044fc74b4f80cc5c7c2b1d65ac42e46b
 }
 ?>
