@@ -58,15 +58,15 @@ $form['submit'] = [
   $form['name'] = [
     '#type' => 'textfield',
     '#title' => $this->t('Add to the Institution Table'),
-    '#size' => '25',
+    '#size' => '40',
     '#maxlength' => '150',
     '#attributes' => ['placeholder' => t('University Of Prince Edward Island')]
   ];
   $form['extension'] = [
     '#type' => 'textfield',
-    '#size' => '25',
+    '#size' => '20',
     '#maxlength' => '150',
-    '#attributes' => ['placeholder' => t('upei.ca')]
+    '#attributes' => ['placeholder' => t('@upei.ca')]
   ];
 
   $form['submit2'] = [
