@@ -453,27 +453,33 @@ class FileUploadForm extends FormBase {
 				else if ($issnOption == 1) {
 					//Do a query for each ISSN type, look for entries with matching user ID
 						
-					//Search for L-ISSN
-					$results = $dbAdmin->selectByISSN($l_issn);
-					foreach($results as $entry) {
-						if($entry->source == $uid) { //If the uid is matching
-							$dbAdmin->deleteLCById($entry->id);
+					if($l_issn != null) {
+						//Search for L-ISSN
+						$results = $dbAdmin->selectByISSN($l_issn);
+						foreach($results as $entry) {
+							if($entry->user == $uid) { //If the uid is matching
+								$dbAdmin->deleteLCById($entry->id);
+							}
 						}
 					}
 						
-					//Search for P-ISSN
-					$results = $dbAdmin->selectByISSN($p_issn);
-					foreach($results as $entry) {
-						if($entry->source == $uid) { //If the uid is matching
-							$dbAdmin->deleteLCById($entry->id);
+					if($p_issn != null) {
+						//Search for P-ISSN
+						$results = $dbAdmin->selectByISSN($p_issn);
+						foreach($results as $entry) {
+							if($entry->user == $uid) { //If the uid is matching
+								$dbAdmin->deleteLCById($entry->id);
+							}
 						}
 					}
 						
-					//Search for E-ISSN
-					$results = $dbAdmin->selectByISSN($p_issn);
-					foreach($results as $entry) {
-						if($entry->source == $uid) { //If the uid is matching
-							$dbAdmin->deleteLCById($entry->id);
+					if($e_issn != null) {
+						//Search for E-ISSN
+						$results = $dbAdmin->selectByISSN($e_issn);
+						foreach($results as $entry) {
+							if($entry->user == $uid) { //If the uid is matching
+								$dbAdmin->deleteLCById($entry->id);
+							}
 						}
 					}
 						
@@ -484,31 +490,37 @@ class FileUploadForm extends FormBase {
 				else if ($issnOption == 2) {
 					//Do a query for each ISSN type, look for entries with matching institution
 					
-					//Search for L-ISSN
-					$results = $dbAdmin->selectByISSN($l_issn);
-					foreach($results as $entry) {
-						$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-						if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
-							$dbAdmin->deleteLCById($entry->id); //Delete this entry
+					if($l_issn != null) {
+						//Search for L-ISSN
+						$results = $dbAdmin->selectByISSN($l_issn);
+						foreach($results as $entry) {
+							$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+							if(strcmp($dbAdmin->getUserInstitution($user), $entryInstitution) == 0) { //If the institutions are the same
+								$dbAdmin->deleteLCById($entry->id); //Delete this entry
+							}
 						}
 					}
-						
-					//Search for P-ISSN
-					$results = $dbAdmin->selectByISSN($p_issn);
-					foreach($results as $entry) {
-						$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-						if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
-							$dbAdmin->deleteLCById($entry->id); //Delete this entry
-						}	
+					
+					if($p_issn != null) {
+						//Search for P-ISSN
+						$results = $dbAdmin->selectByISSN($p_issn);
+						foreach($results as $entry) {
+							$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+							if(strcmp($dbAdmin->getUserInstitution($user), $entryInstitution) == 0) { //If the institutions are the same
+								$dbAdmin->deleteLCById($entry->id); //Delete this entry
+							}	
+						}
 					}
-						
-					//Search for E-ISSN
-					$results = $dbAdmin->selectByISSN($p_issn);
-					foreach($results as $entry) {
-						$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-						if(strcmp($user->get('field_institution')->value, $entryInstitution) == 0) { //If the institutions are the same
-							$dbAdmin->deleteLCById($entry->id); //Delete this entry
-						}	
+					
+					if($e_issn != null) {
+						//Search for E-ISSN
+						$results = $dbAdmin->selectByISSN($p_issn);
+						foreach($results as $entry) {
+							$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+							if(strcmp($dbAdmin->getUserInstitution($user), $entryInstitution) == 0) { //If the institutions are the same
+								$dbAdmin->deleteLCById($entry->id); //Delete this entry
+							}	
+						}
 					}
 						
 					//Now add the new entry
