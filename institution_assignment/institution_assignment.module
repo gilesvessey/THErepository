@@ -13,7 +13,7 @@
 		$ext = array();
 		preg_match('/@.+$/', $email, $ext);
 		
-		$extension = $ext[1];
+		$extension = $ext[0];
 		
 		//Get the name of the institution (if there is one)
 		$name = $dbAdmin->selectByExtension($extension);

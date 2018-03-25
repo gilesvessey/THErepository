@@ -563,6 +563,8 @@ class FileUploadForm extends FormBase {
         fwrite($file, $printOut);
 	}
 	fclose($file);
+	
+	//Serve the file to the user
 	header('Content-Description: File Transfer');
     header('Content-Type: application/octet-stream');
 	header('Content-Disposition: attachment; filename="'.$fileName.'"');
