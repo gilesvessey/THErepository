@@ -369,7 +369,7 @@ class ResultsTable extends ConfigFormBase
                             array_push($recordSet, $record);
                         } else // if it is set, only push records that are from that user ID
                         {
-                            if ($record->user === $chosenInstList['userID']) // Checks if that line was uploaded by the current user, only adds line if it was.
+                            if ($record->user === $institutions['userID']) // Checks if that line was uploaded by the current user, only adds line if it was.
                                 array_push($recordSet, $record);
                         }
                     }
@@ -395,7 +395,7 @@ class ResultsTable extends ConfigFormBase
                             array_push($recordSet, $record);
                         } else // if it is set, only push records that are from that user ID
                         {
-                            if ($record->user === $chosenInstList['userID']) // Checks if that line was uploaded by the current user, only adds line if it was.
+                            if ($record->user === $institutions['userID']) // Checks if that line was uploaded by the current user, only adds line if it was.
                                 array_push($recordSet, $record);
                         }
                     }
