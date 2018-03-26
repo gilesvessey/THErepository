@@ -2,6 +2,11 @@
 namespace Drupal\dbclasses;
 class DBAdmin
 {
+	//Regular expressions for validating inputs
+	$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hyphen
+	$regLC = '/^([a-zA-Z]{1,3}).*$/';
+	#$regLC = '/^([a-zA-Z]{1,3})(([0-9]{0,4})|([0-9]{0,4}\.([0-9]{1,4})))(\.[a-zA-Z][0-9]{0,3}){0,2}.*$/';
+	
 	public function insert($title, $source, $issn_l, $p_issn, $e_issn, $lcclass, $callnumber)
 	{
 		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
@@ -55,6 +60,90 @@ class DBAdmin
 				->execute();
 				
 		return $issn_id;
+	}
+	
+	public function insertTest($title, $l_issn, $p_issn, $e_issn, $lc) {
+		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
+		$database = \Drupal::database();
+		
+		//Validate input data
+		$errors = []; //Holds error messages
+		//ISSNs, match regex, or null
+		//L-ISSN
+		if((preg_match($regISSN, $l_issn) != 1) || $l_issn == null)
+			array_push($errors, 'Invalid L-ISSN');
+		else if(strpos($l_issn, '-')) //Add hyphen if missing
+			$l_issn = substr($l_issn, 0, 4) . '-' . substr($l_issn, -4, 4);
+		//P-ISSN
+		if(preg_match(($regISSN, $p_issn) != 1) || $p_issn == null)
+			array_push($errors, 'Invalid P-ISSN');
+		else if(strpos($p_issn, '-')) //Add hyphen if missing
+			$p_issn = substr($p_issn, 0, 4) . '-' . substr($p_issn, -4, 4);
+		//E-ISSN
+		if((preg_match($regISSN, $e_issn) != 1) || $e_issn == null)
+			array_push($errors, 'Invalid E-ISSN');
+		else if(strpos($e_issn, '-')) //Add hyphen if missing
+			$e_issn = substr($e_issn, 0, 4) . '-' . substr($e_issn, -4, 4);
+		//Make sure one of p or e issn is present
+		if(($p_issn == null) && ($e_issn == null)) {
+			array_push($errors, 'No P or E ISSN Present');
+		}
+		//LC, match regex
+		str_replace(' ', '', $lc); //First remove spaces
+		if(preg_match($regLC, $lc) != 1)
+			array_push($errors, 'Invalid LC');
+		//Title, must be quoted, or null
+		if((substr($title, 1) == "\"") && (substr($title, -1) == "\"") || $title == null)
+			array_push($errors, 'Invalid Title');
+		
+		//Insert only if there are no errors
+		if(empty($errors)) {
+			$existingISSN_l = null;
+			$existingISSN_p = null;
+			$existingISSN_e = null;
+			
+			//Check database for existing issn id's for inputted issns
+			if($l_issn != 0 && $l_issn != '')
+				$existingISSN_l = $this->getISSNId($l_issn);
+			if($p_issn != 0 && $p_issn != '')
+				$existingISSN_p = $this->getISSNId($p_issn);
+			if($e_issn != 0 && e_issn != '')
+				$existingISSN_e = $this->getISSNId($e_issn);
+			
+			//only insert the ISSN if that ISSN doesn't already exist
+			if($existingISSN_l == null && $existingISSN_p == null && $existingISSN_e == null) {		
+				$database->insert('issn');
+				$fields = [
+					'title' => $titleClean,
+					'issn_l' => $l_issn,
+					'p_issn' => $p_issn,
+					'e_issn' => $e_issn,
+				];
+				$issn_id = $database->insert('issn')->fields($fields)->execute();
+			}
+			
+			//If we got an existing issn id, set it as the current one
+			if($existingISSN_p != null)
+				$issn_id = $existingISSN_p;
+			else if($existingISSN_e != null)
+				$issn_id = $existingISSN_e;
+			else if($existingISSN_l != null)
+				$issn_id = $existingISSN_l;
+					
+			//Insert lc assignment
+			$database->insert('lc');
+			$fields = [
+				'issn_id' => $issn_id,
+				'lc' => $lc,
+				'user_id' => $user->get('uid')->value,
+			];
+			$lc_id = $database->insert('lc')->fields($fields)->execute();
+					
+			return [$issn_id, $errors];
+		}
+		else { //If there are errors, return 0 and list of errors
+			return [0, $errors];
+		}
 	}
 	
 	public function selectById($id)
