@@ -62,6 +62,9 @@ class DBAdmin
 		return $issn_id;
 	}
 	
+	//Checks input data and inserts an entry into the database
+	//Returns issn id and an empty array on successful upload
+	//Returns 0 and an array of strings containing error messages on unsuccessful upload
 	public function insertTest($title, $l_issn, $p_issn, $e_issn, $lc) {
 		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
 		$database = \Drupal::database();
