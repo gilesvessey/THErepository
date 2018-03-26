@@ -1,12 +1,7 @@
 <?php
 namespace Drupal\dbclasses;
 class DBAdmin
-{
-	//Regular expressions for validating inputs
-	$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hyphen
-	$regLC = '/^([a-zA-Z]{1,3}).*$/';
-	#$regLC = '/^([a-zA-Z]{1,3})(([0-9]{0,4})|([0-9]{0,4}\.([0-9]{1,4})))(\.[a-zA-Z][0-9]{0,3}){0,2}.*$/';
-	
+{	
 	public function insert($title, $source, $issn_l, $p_issn, $e_issn, $lcclass, $callnumber)
 	{
 		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
@@ -66,25 +61,31 @@ class DBAdmin
 	//Returns issn id and an empty array on successful upload
 	//Returns 0 and an array of strings containing error messages on unsuccessful upload
 	public function insertTest($title, $l_issn, $p_issn, $e_issn, $lc) {
+		
 		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
 		$database = \Drupal::database();
 		
 		//Validate input data
+		
+		//Regular expressions for validating inputs
+		$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hyphen
+		$regLC = '/^([a-zA-Z]{1,3})(([0-9]{0,4})|([0-9]{0,4}\.([0-9]{1,4})))(\.[a-zA-Z][0-9]{0,3}){0,2}$/'; //Strict LC, no extra stuff allowed at the end
+		
 		$errors = []; //Holds error messages
 		//L-ISSN, match regex, or null
 		if((preg_match($regISSN, $l_issn) != 1) && $l_issn != null)
 			array_push($errors, 'Invalid L-ISSN');
-		else if(strpos($l_issn, '-') == false) //Add hyphen if missing
+		else if((strpos($l_issn, '-') == false) && p_issn != null) //Add hyphen if missing
 			$l_issn = substr($l_issn, 0, 4) . '-' . substr($l_issn, -4, 4);
 		//P-ISSN, match regex, or null
-		if(preg_match(($regISSN, $p_issn) != 1) && $p_issn != null)
+		if((preg_match($regISSN, $p_issn) != 1) && $p_issn != null)
 			array_push($errors, 'Invalid P-ISSN');
-		else if(strpos($p_issn, '-') == false) //Add hyphen if missing
+		else if((strpos($p_issn, '-') == false) && p_issn != null) //Add hyphen if missing
 			$p_issn = substr($p_issn, 0, 4) . '-' . substr($p_issn, -4, 4);
 		//E-ISSN, match regex, or null
 		if((preg_match($regISSN, $e_issn) != 1) && $e_issn != null)
 			array_push($errors, 'Invalid E-ISSN');
-		else if(strpos($e_issn, '-') == false) //Add hyphen if missing
+		else if((strpos($e_issn, '-') == false) && p_issn != null) //Add hyphen if missing
 			$e_issn = substr($e_issn, 0, 4) . '-' . substr($e_issn, -4, 4);
 		//Make sure one of p or e issn is present
 		if(($p_issn == null) && ($e_issn == null)) {
@@ -95,7 +96,7 @@ class DBAdmin
 		if(preg_match($regLC, $lc) != 1)
 			array_push($errors, 'Invalid LC');
 		//Title, if not null it must be quoted
-		if(substr($title, 1) == "\"") && (substr($title, -1) == "\"") && $title != null)
+		if((substr($title, 1) == "\"") && (substr($title, -1) == "\"") && $title != null)
 			array_push($errors, 'Title Must Be Quoted');
 		
 		//Insert only if there are no errors

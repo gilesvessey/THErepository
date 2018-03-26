@@ -191,9 +191,9 @@ class SingleUploadForm extends FormBase {
 			$tempISSN = substr($e_issn, 0, 4) . '-' . substr($e_issn, -4, 4);
 			$e_issn = $tempISSN;
 		}
-	
+		//Normal upload
 		if ($issnOption == 0) {
-			$dbAdmin->insert($title, $uid, $l_issn, $p_issn, $e_issn, 0, $lc);
+			$dbAdmin->insertTest($title, $l_issn, $p_issn, $e_issn, $lc);
 		}
 		//Replace own assignments
 		else if ($issnOption == 1) {
