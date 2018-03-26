@@ -260,7 +260,7 @@ class ResultsTable extends ConfigFormBase
 
     /**
      * This method will be called automatically upon submission.
-     * This is the shit that gets done if the user's input passes validation.
+     * This is the stuff that gets done if the user's input passes validation.
      */
     public function submitForm(array &$form, FormStateInterface $form_state)
     {

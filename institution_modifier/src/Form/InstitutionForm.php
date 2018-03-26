@@ -80,7 +80,7 @@ $form['submit'] = [
 
 	/**
 	*This method will be called when removal is intended.
-	*This is the shit that gets done if the user's input passes validation.
+	*This is the stuff that gets done if the user's input passes validation.
 	*/
 
   public function submitForm(array &$form, FormStateInterface $form_state)
@@ -92,7 +92,7 @@ $form['submit'] = [
 
   /**
 	*This method will be called automatically upon submission of the addition form.
-	*This is the shit that gets done if the user's input passes validation.
+	*This is the stuff that gets done if the user's input passes validation.
 	*/
 
   public function submitForm2(array &$form, FormStateInterface $form_state) {
