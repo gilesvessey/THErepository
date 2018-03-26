@@ -17,7 +17,7 @@ class DBAdmin
 		if($p_issn != 0 && $p_issn != '')
 			$existingISSN_p = $this->getISSNId($p_issn);
 		
-		if($e_issn != 0 && e_issn != '')
+		if($e_issn != 0 && $e_issn != '')
 			$existingISSN_e = $this->getISSNId($e_issn);
 		
 		if($existingISSN_l == null && $existingISSN_p == null && $existingISSN_e == null) //only insert the ISSN if that ISSN doesn't already exist
