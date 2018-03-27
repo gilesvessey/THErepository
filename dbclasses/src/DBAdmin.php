@@ -56,6 +56,10 @@ class DBAdmin
 		$e_issn = trim($e_issn, '"');
 		$lc = trim($lc, '"');
 		
+		//Remove all quotes from title, and replace one set - this is incase there are many sets of quotes
+		$title = str_replace('"', "", $title);
+		$title = '"' . $title . '"';
+		
 		//Make all characters in issns and lc uppercase
 		$l_issn = strtoupper($l_issn);
 		$p_issn = strtoupper($p_issn);
