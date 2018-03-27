@@ -100,7 +100,9 @@ function issn_database_installer_lite_schema()
 		'primary key' => ['id'],
 	];
 	
-	$schema['user_institution'] = [
+	//The following table has been flagged for removal:
+	//Once testing is complete, remove this table from the script.
+	/*$schema['user_institution'] = [
 		'description' => 'Connects users to institutions',
 		'fields' => [
 			'id' => [
@@ -121,7 +123,7 @@ function issn_database_installer_lite_schema()
 			],
 		],
 		'primary key' => ['id'],
-	];
+	];*/
 	
 	return $schema;
 }
