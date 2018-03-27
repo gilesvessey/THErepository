@@ -56,6 +56,12 @@ class DBAdmin
 		$e_issn = trim($e_issn, '"');
 		$lc = trim($lc, '"');
 		
+		//Make all characters in issns and lc uppercase
+		$l_issn = strtoupper($l_issn);
+		$p_issn = strtoupper($p_issn);
+		$e_issn = strtoupper($e_issn);
+		$lc = strtoupper($lc);
+		
 		//Insert only if there are no errors
 		if(empty($errors)) {
 			$existingISSN_l = null;
