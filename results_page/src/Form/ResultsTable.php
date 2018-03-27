@@ -4,6 +4,7 @@ namespace Drupal\results_page\Form;
 // Required core classes
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 
 // use our custom classes
 use Drupal\dbclasses\DBAdmin;
@@ -11,7 +12,7 @@ use Drupal\dbclasses\DBRecord;
 
 class ResultsTable extends ConfigFormBase
 {
-    
+
     /**
      * This method puts the form together (defines fields).
      */
@@ -21,7 +22,7 @@ class ResultsTable extends ConfigFormBase
         $dbadmin = new DBAdmin();
         if ($form_state->get('submitted') === 1) {
             $config = $this->config('results_page.settings');
-            
+
             $searchtype = $form_state->get('searchtype');
             $searchterm = $form_state->get('searchterm');
             $institutions = $form_state->get('institutions');
@@ -49,36 +50,51 @@ class ResultsTable extends ConfigFormBase
                     t('Source')
                 );
             }
-            
+
             $records = count($recordSet);
-            $form['t_download'] = [
-                '#type' => 'submit',
-                '#value' => $this->t('Download'),
-                '#submit' => array(
-                    '::downloadForm'
-                )
-            ];
-            
+            $form['download_tsv1'] = [
+      				'#type' => 'submit',
+      				'#value' => $this->t('Downlaod as tsv'),
+      				'#submit' => array('::downloadForm_tsv'),
+      			];
+
+      			$form['download_csv1'] = [
+      				'#type' => 'submit',
+      				'#value' => $this->t('Downlaod as csv'),
+      				'#submit' => array('::downloadForm_csv'),
+      			];
+
             $form['table'] = array(
                 '#type' => 'table',
                 '#caption' => ('Showing first ' . min($form_state->get('resultsshown'), $records) . ' rows out of ' . $records . ' total results.'),
                 '#empty' => 'No results to be shown.',
                 '#header' => $header
             );
-            
+
             // ~~~Code for inputting data into the table below~~~
             if ($form_state->getValue('editoroptions') === '1' || $form_state->getValue('editoroptions') === '2') // This displays the user's institution's data (inst editors and up only)
             {
                 $counter = 0;
                 foreach ($recordSet as $record) {
-                    
+
                     if ($counter >= $form_state->get('resultsshown')) // This is what stops the page from displaying more than your requested num of results
                         break;
+                        $form['IDTable'] = [
+                            '#type' => 'container',
+                            '#states' => ['visible' => [FALSE]]
+                        ];
+                        $form['IDTable'][$counter] = [
+                            '#type' => 'textfield',
+                            '#default_value' => $record->id,
+
+                        ];
+
+
                         $form['table'][$counter]['Edit'] = [ // Edit checkbox
                             '#type' => 'checkbox',
                             '#default_value' => FALSE
                         ];
-                        
+
                         $form['table'][$counter]['Title'] = [ // Container to told editable/ uneditable form fields
                             '#type' => 'container'
                         ];
@@ -106,6 +122,7 @@ class ResultsTable extends ConfigFormBase
                                 )
                             )
                         );
+
                         $form['table'][$counter]['Linking ISSN'] = [
                             '#type' => 'container'
                         ];
@@ -187,7 +204,7 @@ class ResultsTable extends ConfigFormBase
                                 )
                             )
                         );
-                        
+
                         $form['table'][$counter]['LC Call Number'] = [
                             '#type' => 'container'
                         ];
@@ -215,6 +232,9 @@ class ResultsTable extends ConfigFormBase
                                 )
                             )
                         );
+
+
+
                         $form['table'][$counter]['Source'] = array(
                             '#type' => 'item',
                             '#description' => $record->source,
@@ -222,8 +242,12 @@ class ResultsTable extends ConfigFormBase
                         );
                         $form['table'][$counter]['Added By'] = [
                             '#type' => 'item',
-                            '#default_value' => $user = \Drupal\user\Entity\User::load($record->user)->getDisplayName(),
+                            '#description' => \Drupal\user\Entity\User::load($record->user)->getDisplayName(),
                             '#size' => 13
+                        ];
+                        $form['editbutton'] = [
+                            '#type' => 'submit',
+                            '#value' => $this->t('Submit Changes')
                         ];
                 }
                 $counter ++;
@@ -231,45 +255,45 @@ class ResultsTable extends ConfigFormBase
             {
                 $counter = 0;
                 foreach ($recordSet as $record) {
-                    
+
                     if ($counter >= $form_state->get('resultsshown')) // This is what stops the page from displaying more than your requested num of results
                         break;
-                        
+
                         $form['table'][$counter]['Title'] = array(
                             '#type' => 'item',
                             '#description' => $record->title
                         );
-                        
+
                         $form['table'][$counter]['Linking ISSN'] = array(
                             '#type' => 'item',
                             '#description' => $record->issn_l
                         );
-                        
+
                         $form['table'][$counter]['Print ISSN'] = array(
                             '#type' => 'item',
                             '#description' => $record->p_issn
                         );
-                        
+
                         $form['table'][$counter]['Electronic ISSN'] = array(
                             '#type' => 'item',
                             '#description' => $record->e_issn
                         );
-                        
+
                         $form['table'][$counter]['LC Call Number'] = array(
                             '#type' => 'item',
                             '#description' => $record->callnumber
                         );
-                        
+
                         $form['table'][$counter]['Source'] = array(
                             '#type' => 'item',
                             '#description' => $record->source
                         );
-                        
+
                         $counter ++;
                 }
             }
         } else { // Search filter details below
-            
+
             $instList = $dbadmin->getInstitutions();
             $editorOptionsTitle = '';
             $editorRadioOptions = [];
@@ -284,9 +308,9 @@ class ResultsTable extends ConfigFormBase
             if ($user->hasRole('editorial_user')) { // This is for institutional editors and above only
                 $editorRadioOptions[1] = t('Display all contributions from ' . $userInst);
             }
-            
+
             $config = $this->config('searchInterface.settings');
-            
+
             $form['file_content'] = [
                 '#type' => 'radios',
                 '#title' => $this->t('Data type provided:'),
@@ -303,7 +327,10 @@ class ResultsTable extends ConfigFormBase
                 '#options' => $editorRadioOptions,
                 '#default_value' => 0
             ];
-            
+            $form ['toggle'] = [
+                '#type' => 'button',
+                '#value' => 'Search Via File'
+            ];
             $form['inputs_table'] = [
                 '#type' => 'table',
                 '#header' => [
@@ -319,7 +346,7 @@ class ResultsTable extends ConfigFormBase
             $form['inputs_table'][0]['...or search with a file'] = [
                 '#type' => 'container',
                 '#states' => array(
-                    'required' => array(
+                    'enabled' => array(
                         ':input[name="editoroptions"]' => array(
                             'value' => '0'
                         )
@@ -337,7 +364,7 @@ class ResultsTable extends ConfigFormBase
                 ),
                 '#required' => FALSE
             ];
-            
+
             $form['multiselect'] = [
                 '#type' => 'select',
                 '#options' => $instList,
@@ -351,7 +378,7 @@ class ResultsTable extends ConfigFormBase
                     )
                 )
             ];
-            
+
             $form['quantity'] = [
                 '#type' => 'number',
                 '#title' => $this->t('# of Previewed Results:'),
@@ -360,114 +387,129 @@ class ResultsTable extends ConfigFormBase
                 '#max' => '10000',
                 '#size' => '5'
             ];
-            
+
             $form['download'] = [
                 '#type' => 'button',
                 '#value' => $this->t('Download')
-                
+
             ];
-            
+
             $form['display'] = [
                 '#type' => 'submit',
                 '#value' => $this->t('Display')
-                
+
             ];
         }
         return $form;
     }
-    
+
     /**
      * This method will be called automatically upon submission.
      * This is the shit that gets done if the user's input passes validation.
      */
     public function submitForm(array &$form, FormStateInterface $form_state)
     {
-        $dbadmin = new DBAdmin();
-        $input_table = $form_state->getValue('inputs_table');
-        // Handle submitted values in $form_state here.
-        if ($form_state->getValue('file_content') === '0') {
-            $searchtype = 'issn';
-            $searchterm = $input_table[0]['Paste a list...']; // This is the text box field
-        } else if ($form_state->getValue('file_content') === '1') {
-            $searchtype = 'lccn';
-            $searchterm = $input_table[0]['Paste a list...'];
-        } else if ($form_state->getValue('file_content') === '2')
-            $searchtype = 'all';
-            
-            if ($form_state->getValue('editoroptions') === '1') // All lines from an inst editor's institution
+        if (!$form_state->getValue('editflag')) //Edit flag is disabled, handle the form as normal
+        {
+            $dbadmin = new DBAdmin();
+            $input_table = $form_state->getValue('inputs_table');
+            // Handle submitted values in $form_state here.
+            if ($form_state->getValue('file_content') === '0') {
+                $searchtype = 'issn';
+                $searchterm = $input_table[0]['Paste a list...']; // This is the text box field
+            } else if ($form_state->getValue('file_content') === '1') {
+                $searchtype = 'lccn';
+                $searchterm = $input_table[0]['Paste a list...'];
+            } else if ($form_state->getValue('file_content') === '2')
+                $searchtype = 'all';
+
+                if ($form_state->getValue('editoroptions') === '1') // All lines from an inst editor's institution
+                {
+
+                    $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
+                    $uid = $user->get('uid')->value;
+                    $chosenInstList = array();
+                    $userInst = $dbadmin->getUserInstitution($uid);
+                    $chosenInstList[0] = $userInst;
+                } else if ($form_state->getValue('editoroptions') === '2') // Only that user's lines will be displayed
+                {
+
+                    $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
+                    $uid = $user->get('uid')->value;
+                    $chosenInstList = array();
+                    $userInst = $dbadmin->getUserInstitution($uid);
+                    $chosenInstList[0] = $userInst;
+                    $chosenInstList['userID'] = $uid; // This key is only assigned when we need to filter by user
+                } else // Standard search, grabs the institution list from the selection boxes
+                {
+                    $multiselect = $form_state->getValue('multiselect');
+                    $instList = $dbadmin->getInstitutions();
+                    $chosenInstList = array();
+                    $f = 0;
+                    foreach ($multiselect as $key) {
+                        $chosenInstList[$f] = $instList[$key];
+                        $f ++;
+                    }
+                }
+
+                $form_state->set('searchterm', $searchterm);
+                $form_state->set('searchtype', $searchtype);
+                $form_state->set('institutions', $chosenInstList);
+                $form_state->set('resultsshown', $form_state->getValue('quantity'));
+                $form_state->set('submitted', 1);
+                $form_state->setRebuild();
+
+                $database = \Drupal::database(); // Drupal saves references in its database to all files uploaded via managed_file
+                $sql = "SELECT uri FROM file_managed WHERE status=0 ORDER BY fid DESC LIMIT 1;"; // find the uri of the file just added
+                $fileURI = db_query($sql);
+                $fileLocation = '';
+                $fileExtension = '';
+
+                foreach ($fileURI as $record2) {
+                    $fileLocation = $record2->uri;
+                    // public:// is the folder that Drupal allows users to download/access files from, etc
+                    $fileLocation = str_replace('public://', 'sites/default/files/', $fileLocation); // format the file location properly
+                }
+
+                $file = []; // instantiate $file which will be an array of arrays
+                $headers = [];
+                $isHeader = TRUE;
+
+                $fileHandle = fopen($fileLocation, "rw"); // open file
+                if ($fileHandle) // if no error
+                {
+                    while (! feof($fileHandle)) { // until end of file...
+                        if ($form_state->getValue('inputs_table'[0]['...or search with a file']) != null);
+                        $record3 = fgets($fileHandle);
+                        //echo $record3;
+                    }
+                }
+        }
+        else //The following code has to do with handling an editor's edits.
+        {
+
+            for ($i=0; $form_state->getValue('table'[$i]['Edit']) != null; $i++)
             {
-                
-                $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
-                $uid = $user->get('uid')->value;
-                $chosenInstList = array();
-                $userInst = $dbadmin->getUserInstitution($uid);
-                $chosenInstList[0] = $userInst;
-            } else if ($form_state->getValue('editoroptions') === '2') // Only that user's lines will be displayed
-            {
-                
-                $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
-                $uid = $user->get('uid')->value;
-                $chosenInstList = array();
-                $userInst = $dbadmin->getUserInstitution($uid);
-                $chosenInstList[0] = $userInst;
-                $chosenInstList['userID'] = $uid; // This key is only assigned when we need to filter by user
-            } else // Standard search, grabs the institution list from the selection boxes
-            {
-                $multiselect = $form_state->getValue('multiselect');
-                $instList = $dbadmin->getInstitutions();
-                $chosenInstList = array();
-                $f = 0;
-                foreach ($multiselect as $key) {
-                    $chosenInstList[$f] = $instList[$key];
-                    $f ++;
+                if ($form_state->getValue('table'[$i]['Edit']) === TRUE) //If this line is checked for editing
+                {
+                    echo 'checkbox picked up!';
                 }
             }
-            
-            $form_state->set('searchterm', $searchterm);
-            $form_state->set('searchtype', $searchtype);
-            $form_state->set('institutions', $chosenInstList);
-            $form_state->set('resultsshown', $form_state->getValue('quantity'));
             $form_state->set('submitted', 1);
             $form_state->setRebuild();
-            
-            $database = \Drupal::database(); // Drupal saves references in its database to all files uploaded via managed_file
-            $sql = "SELECT uri FROM file_managed WHERE status=0 ORDER BY fid DESC LIMIT 1;"; // find the uri of the file just added
-            $fileURI = db_query($sql);
-            $fileLocation = '';
-            $fileExtension = '';
-            
-            foreach ($fileURI as $record2) {
-                $fileLocation = $record2->uri;
-                // public:// is the folder that Drupal allows users to download/access files from, etc
-                $fileLocation = str_replace('public://', 'sites/default/files/', $fileLocation); // format the file location properly
-            }
-            
-            $file = []; // instantiate $file which will be an array of arrays
-            $headers = [];
-            $isHeader = TRUE;
-            
-            $fileHandle = fopen($fileLocation, "rw"); // open file
-            if ($fileHandle) // if no error
-            {
-                while (! feof($fileHandle)) { // until end of file...
-                    if ($form_state->getValue('inputs_table'[0]['...or search with a file']) != null);
-                    $record3 = fgets($fileHandle);
-                    echo $record3;
-                }
-            }
-            
-            return $form;
+        }
+        return $form;
     }
-    
     public function downloadForm(array &$form, FormStateInterface $form_state)
     {
         $recordSet = $this->getRecordSet($form_state->get('searchtype'), $form_state->get('searchterm'), $form_state->get('institutions'));
         $fileLocation = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
         $fileName = "Download.csv";
         $file = fopen($fileLocation . $fileName, "w");
-        fwrite($file, "Title,Linking ISSN,Print ISSN,Electronic ISSN,LC call number,Source\n"); // write header to file
+        fwrite($file, "title,l_issn,p_issn,e_issn,lc,source\n"); // write header to file
+        $doublequotes = "\"\"";
         foreach ($recordSet as $record) {
-            $printOut = "$record->title,$record->issn_l,$record->p_issn,$record->e_issn,$record->callnumber,$record->source,\n";
+            $printOut =  $doublequotes . "$record->title" . $doublequotes . ",$record->issn_l,$record->p_issn,$record->e_issn,$record->callnumber,$record->source,\n";
             fwrite($file, $printOut);
         }
         fclose($file);
@@ -482,12 +524,44 @@ class ResultsTable extends ConfigFormBase
         drupal_set_message(t("RESULT: <p>EXPORT AS: <a href=\"$fileLocation$fileName\">.csv</a>\t<a href=\"$fileLocation$fileName2\">.tsv</a></p>"));
         // return $form;
     }
-    
+    public function downloadForm_csv(array &$form, FormStateInterface $form_state)
+  	{
+  		$recordSet = $this->getRecordSet($form_state->get('searchtype'), $form_state->get('searchterm'), $form_state->get('institutions'));
+      $fileLocation = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
+      $fileName = "Download.csv";
+      $file = fopen($fileLocation . $fileName, "w");
+      fwrite($file, "title,l_issn,p_issn,e_issn,lc,source\n"); // write header to file
+      $doublequotes = "\"\"";
+      foreach ($recordSet as $record) {
+          $printOut =  $doublequotes . "$record->title" . $doublequotes . ",$record->issn_l,$record->p_issn,$record->e_issn,$record->callnumber,$record->source,\n";
+          fwrite($file, $printOut);
+      }
+      fclose($file);
+  		$url = Url::fromUri('base:sites/default/files/downloads/Download.csv');
+  		$form_state->setRedirectUrl($url);
+  		//return $form;
+  	}
+  	public function downloadForm_tsv(array &$form, FormStateInterface $form_state)
+  	{
+  		$recordSet = $this->getRecordSet($form_state->get('searchtype'), $form_state->get('searchterm'), $form_state->get('institutions'));
+      $fileName2 = "Download.tsv";
+      $file2 = fopen($fileLocation . $fileName2, "w");
+      fwrite($file2, "Title\tLinking ISSN\tPrint ISSN\tElectronic ISSN\tLC call number\tSource\n"); // write header to file
+      foreach ($recordSet as $record) {
+          $printOut2 = "$record->title\t$record->issn_l\t$record->p_issn\t$record->e_issn\t$record->callnumber\t$record->source\t\n";
+          fwrite($file2, $printOut2);
+      }
+      fclose($file2);
+  		$url = Url::fromUri('base:sites/default/files/downloads/Download.tsv');
+  		$form_state->setRedirectUrl($url);
+  		//return $form;
+  	}
+
     public function getRecordSet($searchtype, $searchterm, $institutions)
     {
         $dbadmin = new DBAdmin();
         // ~~~ISSN specific input cleansing below~~~
-        
+
         if ($searchtype === 'issn') {
             // $recordSet = $dbadmin->selectByISSN($searchterm);
             $recordSet = array();
@@ -498,13 +572,13 @@ class ResultsTable extends ConfigFormBase
                 $issn = preg_replace($pattern, '', t($issn)); // Removes any form of white space from the ISSN we're searching for
                 if (strlen($issn) < 8) // Don't search for this input if it's 7 chars or less. (newlines were getting searched for and returning everything in addition. )
                     continue;
-                    
+
                     if (strpos($issn, "-") === false) // If $issn doesn't contain a hyphen
                         $issn = (substr($issn, 0, 4) . '-' . substr($issn, 4, 7)); // Put one there (breaks if anything precedes the issn, cleansing is key here)
-                        
+
                         $newRecordSet = null;
                         $newRecordSet = $dbadmin->selectByISSN($issn); // gets a list of results from the next ISSN query
-                        
+
                         foreach ($newRecordSet as $record) // goes through that list of results row by row
                         {
                             if (in_array($record->source, $institutions, FALSE)) {
@@ -523,12 +597,12 @@ class ResultsTable extends ConfigFormBase
         else if ($searchtype === 'lccn') {
             $recordSet = array();
             $lccn_array = preg_split('/[\s]+/', $searchterm);
-            
+
             foreach ($lccn_array as $lccn) // turn the list of ISSNs into an array of ISSNs
             {
                 $pattern = '/\s*/m';
                 $lccn = preg_replace($pattern, '', t($lccn)); // Removes any form of white space from the LC we're searching for
-                
+
                 $newRecordSet = null;
                 $newRecordSet = $dbadmin->selectByLC($lccn); // gets a list of results from the next LC query
                 foreach ($newRecordSet as $record) // goes through that list of results row by row
@@ -548,7 +622,7 @@ class ResultsTable extends ConfigFormBase
         } else {
             $recordSet = array();
             $newRecordSet = $dbadmin->selectAll();
-            
+
             foreach ($newRecordSet as $record) // goes through that list of results row by row
             {
                 if (in_array($record->source, $institutions, FALSE)) {
@@ -564,14 +638,25 @@ class ResultsTable extends ConfigFormBase
                 }
             }
         }
+
         return $recordSet;
     }
+
+    /**
+     *
+     * {@inheritdoc}
+     */
     protected function getEditableConfigNames()
     {
         return [
             'results_page.settings'
         ];
     }
+
+    /**
+     *
+     * {@inheritdoc}
+     */
     public function getFormId()
     {
         return 'results_page_settings';
