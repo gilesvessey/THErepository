@@ -86,7 +86,6 @@ class SingleUploadForm extends FormBase {
 				1 =>t('Replace existing LC assignments (Owned by me)'),
 			),
 		];
-		
 	}
 			
 	//Submit button
@@ -98,185 +97,115 @@ class SingleUploadForm extends FormBase {
     return $form;
   }
 
-	
-	
-   public function validateForm(array &$form, FormStateInterface $form_state) {
-
-    }
-	
-	
-  
+  public function validateForm(array &$form, FormStateInterface $form_state) {}
+   
   public function submitForm(array &$form, FormStateInterface $form_state) {
 	$dbAdmin = new DBAdmin();
-	
-	//Get the user's id to put as the source
-	$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
-	$uid = $user->get('uid')->value;
+	$uid = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id())->get('uid')->value; //Get current user id
 	
 	//Get the issn radio button option
 	$issnOption = $form_state->getValue('issn_option');
 	
-	//Regular expressions for data checking
-	//$regTitle = '/^([a-zA-Z]|\s)*$/'; //Title, any combination of letters and whitespace, or nothing since it's optional
-	$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hyphen
-	$regLC = '/^([a-zA-Z]{1,3}).*$/';
-	
+	//Get the input data
 	$title = $form_state->getValue('title');
 	$l_issn = $form_state->getValue('l_issn');
 	$p_issn = $form_state->getValue('p_issn');
 	$e_issn = $form_state->getValue('e_issn');
 	$lc = $form_state->getValue('lc');
-		
-	//Verify the data is correct
-	$correct = true; //For checking if the data is correct
-				
-	//Check title
-	/*
-	if(preg_match($regTitle, $title) == 0 | preg_match($regTitle, $title) == false) {//If the title has unaccepted characters
-		$correct = false; 
-		
-		drupal_set_message('Invalid title', 'error');
-	}
-	*/
-	//Check L-ISSN
-	if((preg_match($regISSN, $l_issn) == 0 || preg_match($regISSN, $l_issn) == false) && $l_issn != null) {//If the ISSN is not in the right format and something is there
-		$correct = false;
-		
-		drupal_set_message('Invalid l_issn', 'error');
-	}
 	
-	//Check P-ISSN
-	if((preg_match($regISSN, $p_issn) == 0 || preg_match($regISSN, $p_issn) == false) && $p_issn != null) {//If the ISSN is not in the right format and something is there
-		$correct = false;
-		
-		drupal_set_message('Invalid p_issn', 'error');
+	//Normal upload
+	if ($issnOption == 0) {
+		$insert = $dbAdmin->insert($title, $l_issn, $p_issn, $e_issn, $lc);
+		if($insert[0] == 0) { //If there are errors
+			foreach($insert[1] as $error) //Print them
+				drupal_set_message($error, 'error');
+		}
+		else //Otherwise, success
+			drupal_set_message('Entry uploaded successfully!');
 	}
-	
-	//Check E-ISSN
-	if((preg_match($regISSN, $e_issn) == 0 || preg_match($regISSN, $e_issn) == false) && $e_issn != null) {//If the ISSN is not in the right format and something is there
-		$correct = false;
-		
-		drupal_set_message('Invalid e_issn', 'error');
+	//Replace own assignments
+	else if ($issnOption == 1) {
+		//Do a query for each ISSN type, look for entries with matching user ID
+		if($l_issn != null) {
+			//Search for L-ISSN
+			$results = $dbAdmin->selectByISSN($l_issn);
+			foreach($results as $entry) {
+				if($entry->user == $uid) { //If the uid is matching
+					$dbAdmin->deleteLCById($entry->id);
+				}
+			}
+		}			
+		if($p_issn != null) {
+			//Search for P-ISSN
+			$results = $dbAdmin->selectByISSN($p_issn);
+			foreach($results as $entry) {
+				if($entry->user == $uid) { //If the uid is matching
+					$dbAdmin->deleteLCById($entry->id);
+				}
+			}
+		}		
+		if($e_issn != null) {
+			//Search for E-ISSN
+			$results = $dbAdmin->selectByISSN($e_issn);
+			foreach($results as $entry) {
+				if($entry->user == $uid) { //If the uid is matching
+					$dbAdmin->deleteLCById($entry->id);
+				}
+			}
+		}					
+		//Now add the new entry
+		$insert = $dbAdmin->insert($title, $l_issn, $p_issn, $e_issn, $lc);
+		if($insert[0] == 0) { //If there are errors
+			foreach($insert[1] as $error) //Print them
+				drupal_set_message($error, 'error');
+		}
+		else //Otherwise, success
+			drupal_set_message('Entry uploaded successfully!');
 	}
-	
-	//Check LC
-	$lc = str_replace(" ", "", $lc); //remove spaces first
-	if((preg_match($regLC, $lc) == 0 || preg_match($regLC, $lc) == false) || $lc == null) {//If the LC is invalid or is missing, line is wrong
-		$correct = false;
-		
-		drupal_set_message('Invalid lc', 'error');
-	}
-				
-	//Check that at least one of e or p ISSN elements has data inside
-	$existsISSN = false;
-	if(($p_issn != null) || ($e_issn != null)) {
-		$existsISSN = true;
-	}
-	else {
-		drupal_set_message('No p-ISSN or e-ISSN present', 'error');
-	}
-		
-	if($correct && $existsISSN) { //If this line's data is correct and contains at least one ISSN, enter it
-	
-		//Add hyphens to ISSNs that are missing them
-		if(strlen($l_issn) == 8) {
-			$tempISSN = substr($l_issn, 0, 4) . '-' . substr($l_issn, -4, 4);
-			$l_issn = $tempISSN;
-		}
-		if(strlen($p_issn) == 8) {
-			$tempISSN = substr($p_issn, 0, 4) . '-' . substr($p_issn, -4, 4);
-			$p_issn = $tempISSN;
-		}
-		if(strlen($e_issn) == 8) {
-			$tempISSN = substr($e_issn, 0, 4) . '-' . substr($e_issn, -4, 4);
-			$e_issn = $tempISSN;
-		}
-		//Normal upload
-		if ($issnOption == 0) {
-			$dbAdmin->insertTest($title, $l_issn, $p_issn, $e_issn, $lc);
-		}
-		//Replace own assignments
-		else if ($issnOption == 1) {
-			//Do a query for each ISSN type, look for entries with matching user ID
-			
-			if($l_issn != null) {
-				//Search for L-ISSN
-				$results = $dbAdmin->selectByISSN($l_issn);
-				foreach($results as $entry) {
-					if($entry->user == $uid) { //If the uid is matching
-						$dbAdmin->deleteLCById($entry->id);
-					}
+	//Replace institution assignments
+	else if ($issnOption == 2) {
+	//Do a query for each ISSN type, look for entries with matching institution
+		if($l_issn != null) {
+			//Search for L-ISSN
+			$results = $dbAdmin->selectByISSN($l_issn);
+			foreach($results as $entry) {
+				$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+				$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
+				if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
+					$dbAdmin->deleteLCById($entry->id); //Delete this entry
 				}
 			}
-					
-			if($p_issn != null) {
-				//Search for P-ISSN
-				$results = $dbAdmin->selectByISSN($p_issn);
-				foreach($results as $entry) {
-					if($entry->user == $uid) { //If the uid is matching
-						$dbAdmin->deleteLCById($entry->id);
-					}
-				}
+		}				
+		if($p_issn != null) {
+			//Search for P-ISSN
+			$results = $dbAdmin->selectByISSN($p_issn);
+			foreach($results as $entry) {
+				$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+				$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
+				if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
+					$dbAdmin->deleteLCById($entry->id); //Delete this entry
+				}		
 			}
-				
-			if($e_issn != null) {
-				//Search for E-ISSN
-				$results = $dbAdmin->selectByISSN($e_issn);
-				foreach($results as $entry) {
-					if($entry->user == $uid) { //If the uid is matching
-						$dbAdmin->deleteLCById($entry->id);
-					}
-				}
-			}
-							
-			//Now add the new entry
-			$dbAdmin->insert($title, $uid, $l_issn, $p_issn, $e_issn, 0, $lc);
 		}
-		//Replace institution assignments
-		else if ($issnOption == 2) {
-			//Do a query for each ISSN type, look for entries with matching institution
-			
-			if($l_issn != null) {
-				//Search for L-ISSN
-				$results = $dbAdmin->selectByISSN($l_issn);
-				foreach($results as $entry) {
-					$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-					$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
-					if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
-						$dbAdmin->deleteLCById($entry->id); //Delete this entry
-					}
-				}
+		if($e_issn != null) {			
+			//Search for E-ISSN
+			$results = $dbAdmin->selectByISSN($e_issn);
+			foreach($results as $entry) {
+				$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+				$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
+				if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
+					$dbAdmin->deleteLCById($entry->id); //Delete this entry
+				}			
 			}
-						
-			if($p_issn != null) {
-				//Search for P-ISSN
-				$results = $dbAdmin->selectByISSN($p_issn);
-				foreach($results as $entry) {
-					$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-					$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
-					if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
-						$dbAdmin->deleteLCById($entry->id); //Delete this entry
-					}		
-				}
-			}
-	
-			if($e_issn != null) {			
-				//Search for E-ISSN
-				$results = $dbAdmin->selectByISSN($p_issn);
-				foreach($results as $entry) {
-					$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-					$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
-					if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
-						$dbAdmin->deleteLCById($entry->id); //Delete this entry
-					}			
-				}
-			}
-						
-			//Now add the new entry
-			$dbAdmin->insert($title, $uid, $l_issn, $p_issn, $e_issn, 0, $lc);
+		}				
+		//Now add the new entry
+		$insert = $dbAdmin->insert($title, $l_issn, $p_issn, $e_issn, $lc);
+		if($insert[0] == 0) { //If there are errors
+			foreach($insert[1] as $error) //Print them
+				drupal_set_message($error, 'error');
 		}
-		
-		drupal_set_message('Entry uploaded successfully!');
+		else //Otherwise, success
+			drupal_set_message('Entry uploaded successfully!');
 	}
 
 	return $form;

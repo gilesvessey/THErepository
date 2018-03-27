@@ -2,102 +2,59 @@
 namespace Drupal\dbclasses;
 class DBAdmin
 {	
-	public function insert($title, $source, $issn_l, $p_issn, $e_issn, $lcclass, $callnumber)
-	{
-		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
-		$database = \Drupal::database();
-
-		$existingISSN_l = null;
-		$existingISSN_p = null;
-		$existingISSN_e = null;
-		
-		if($issn_l != 0 && $issn_l != '')
-			$existingISSN_l = $this->getISSNId($issn_l);
-		
-		if($p_issn != 0 && $p_issn != '')
-			$existingISSN_p = $this->getISSNId($p_issn);
-		
-		if($e_issn != 0 && $e_issn != '')
-			$existingISSN_e = $this->getISSNId($e_issn);
-		
-		if($existingISSN_l == null && $existingISSN_p == null && $existingISSN_e == null) //only insert the ISSN if that ISSN doesn't already exist
-		{
-			//elements we don't want in our titles:
-			$titleClean = str_replace([",","\\r","\\t","\\n"]," ",$title);		
-		
-			$database->insert('issn');
-				$fields = [
-					'title' => $titleClean,
-					'issn_l' => $issn_l,
-					'p_issn' => $p_issn,
-					'e_issn' => $e_issn,
-					];
-				$issn_id = $database->insert('issn')
-					->fields($fields)
-					->execute();
-		}
-		
-		if($existingISSN_p != null)
-			$issn_id = $existingISSN_p;
-		else if($existingISSN_e != null)
-			$issn_id = $existingISSN_e;
-		else if($existingISSN_l != null)
-			$issn_id = $existingISSN_l;
-				
-		$database->insert('lc');
-			$fields = [
-				'issn_id' => $issn_id,
-				'lc' => $callnumber,
-				'user_id' => $user->get('uid')->value,
-				];
-			$lc_id = $database->insert('lc')
-				->fields($fields)
-				->execute();
-				
-		return $issn_id;
-	}
-	
 	//Checks input data and inserts an entry into the database
 	//Returns issn id and an empty array on successful upload
 	//Returns 0 and an array of strings containing error messages on unsuccessful upload
-	public function insertTest($title, $l_issn, $p_issn, $e_issn, $lc) {
-		
-		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
+	public function insert($title, $l_issn, $p_issn, $e_issn, $lc) {
 		$database = \Drupal::database();
+		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
 		
-		//Validate input data
+		//Validate and clean input data
+		
+		//First trim leading and trailing whitespace that may exist
+		$title = trim($title);
+		$l_issn = trim($l_issn);
+		$p_issn = trim($p_issn);
+		$e_issn = trim($e_issn);
+		$lc = trim($lc);
 		
 		//Regular expressions for validating inputs
-		$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hyphen
-		$regLC = '/^([a-zA-Z]{1,3})(([0-9]{0,4})|([0-9]{0,4}\.([0-9]{1,4})))(\.[a-zA-Z][0-9]{0,3}){0,2}$/'; //Strict LC, no extra stuff allowed at the end
+		$regISSN = '/^"?[0-9]{4}-?[0-9]{3}([0-9]|(X|x))"?$/'; //Accepts an ISSN with or without a hyphen, can be in quotes or not
+		$regLC = '/^"?([a-zA-Z]{1,3})(([0-9]{0,4})|([0-9]{0,4}\.([0-9]{1,4})))(\.[a-zA-Z][0-9]{0,3}){0,2}"?$/'; //Strict LC, no extra stuff allowed at the end, can be in quotes or not
 		
 		$errors = []; //Holds error messages
-		//L-ISSN, match regex, or null
+		//Make sure one of p or e issn is present
+		if(($p_issn == null) && ($e_issn == null))
+			array_push($errors, 'No P or E ISSN Present');
+		//L-ISSN, match regex, or blank
 		if((preg_match($regISSN, $l_issn) != 1) && $l_issn != null)
 			array_push($errors, 'Invalid L-ISSN');
-		else if((strpos($l_issn, '-') == false) && p_issn != null) //Add hyphen if missing
+		else if((strpos($l_issn, '-') == false) && $l_issn != null) //Add hyphen if missing
 			$l_issn = substr($l_issn, 0, 4) . '-' . substr($l_issn, -4, 4);
-		//P-ISSN, match regex, or null
+		//P-ISSN, match regex, or blank
 		if((preg_match($regISSN, $p_issn) != 1) && $p_issn != null)
 			array_push($errors, 'Invalid P-ISSN');
-		else if((strpos($p_issn, '-') == false) && p_issn != null) //Add hyphen if missing
+		else if((strpos($p_issn, '-') == false) && $p_issn != null) { //Add hyphen if missing
 			$p_issn = substr($p_issn, 0, 4) . '-' . substr($p_issn, -4, 4);
-		//E-ISSN, match regex, or null
+		}
+		//E-ISSN, match regex, or blank
 		if((preg_match($regISSN, $e_issn) != 1) && $e_issn != null)
 			array_push($errors, 'Invalid E-ISSN');
-		else if((strpos($e_issn, '-') == false) && p_issn != null) //Add hyphen if missing
+		else if((strpos($e_issn, '-') == false) && $e_issn != null) //Add hyphen if missing
 			$e_issn = substr($e_issn, 0, 4) . '-' . substr($e_issn, -4, 4);
-		//Make sure one of p or e issn is present
-		if(($p_issn == null) && ($e_issn == null)) {
-			array_push($errors, 'No P or E ISSN Present');
-		}
-		//LC, match regex, cannot be null
-		str_replace(' ', '', $lc); //First remove spaces
+		//LC, match regex, cannot be blank
+		$lc = str_replace(" ", "", $lc); //Remove all spaces from LC
 		if(preg_match($regLC, $lc) != 1)
 			array_push($errors, 'Invalid LC');
-		//Title, if not null it must be quoted
-		if((substr($title, 1) == "\"") && (substr($title, -1) == "\"") && $title != null)
+		//Title, if not blank it must be quoted
+		if(((substr($title, 0, 1) != '"') || (substr($title, -1, 1) != '"')) && $title != null)
 			array_push($errors, 'Title Must Be Quoted');
+		
+		//Trim quotations off issns and lc before upload
+		$l_issn = trim($l_issn, '"');
+		$p_issn = trim($p_issn, '"');
+		$e_issn = trim($e_issn, '"');
+		$lc = trim($lc, '"');
 		
 		//Insert only if there are no errors
 		if(empty($errors)) {
@@ -106,18 +63,18 @@ class DBAdmin
 			$existingISSN_e = null;
 			
 			//Check database for existing issn id's for inputted issns
-			if($l_issn != 0 && $l_issn != '')
+			if($l_issn != null)
 				$existingISSN_l = $this->getISSNId($l_issn);
-			if($p_issn != 0 && $p_issn != '')
+			if($p_issn != null)
 				$existingISSN_p = $this->getISSNId($p_issn);
-			if($e_issn != 0 && e_issn != '')
+			if($e_issn != null)
 				$existingISSN_e = $this->getISSNId($e_issn);
 			
 			//only insert the ISSN if that ISSN doesn't already exist
 			if($existingISSN_l == null && $existingISSN_p == null && $existingISSN_e == null) {		
 				$database->insert('issn');
 				$fields = [
-					'title' => $titleClean,
+					'title' => $title,
 					'issn_l' => $l_issn,
 					'p_issn' => $p_issn,
 					'e_issn' => $e_issn,

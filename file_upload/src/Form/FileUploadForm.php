@@ -143,11 +143,8 @@ class FileUploadForm extends FormBase {
   }
 	
 	
-   public function validateForm(array &$form, FormStateInterface $form_state) {
-    }
+  public function validateForm(array &$form, FormStateInterface $form_state) {}
 	
-	
-  
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // Handle submitted values in $form_state here.
 	$dbAdmin = new DBAdmin();
@@ -211,29 +208,6 @@ class FileUploadForm extends FormBase {
 	
 	//Get the issn radio button option
 	$issnOption = $form_state->getValue('issn_option');
-	
-	//Regular expressions for data checking
-	//$regTitle = '/^([a-zA-Z]|\s)*$/'; //Title, any combination of letters and whitespace, or nothing since it's optional
-	$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hyphen
-	$regLC = '/^([a-zA-Z]{1,3}).*$/';
-	#$regLC = '/^([a-zA-Z]{1,3})(([0-9]{0,4})|([0-9]{0,4}\.([0-9]{1,4})))(\.[a-zA-Z][0-9]{0,3}){0,2}.*$/';
-	
-	/*
-	The above commented regLC enforces pretty strict formatting for LCs. The format is the following:
-	1-3 letters (for the class) followed by, 
-	0-4 digits or 0-4 digits followed be a dot followed by another 0-4 digits for the subject (subject is optional) followed by,
-	1 letter followed by up to 3 letters for a cutter. You can have 0-2 cutters.
-	Anything after that is ok
-	Some examples of valid LCs with this regular expression: a, ab, abc, abc1, abc1234, abc1234.1, abc.1234.1234, abc.1234.1234.a1, abc.1.a123.a123
-	Some examples of invalid LCs with this regular expression: 1, abcd, a12345, a1234.12345
-	The problem with this is that sometimes people don't follow this format very strictly, and they put a lot of 
-	random stuff in their LC making following a regular expression rather difficult. A few examples of this found
-	in given database: "GV723.N3 .{Ohorn}3", "GV848.5.A1 .R6514 (FRENCH) (JUV)", "GV862 .N55 INTERNET", "CA1CI51-61".
-	If you find that this regular expression is too strict use the following instead
-	$regLC = '/^([a-zA-Z]{1,3}).*$/';
-	
-	If in the future, you discover you want to be that strict with the formatting of lcs, use that line instead.
-	.*/
 	
 	$headersCorrect = true; //Holds whether the headers are correct or not
 	
@@ -325,223 +299,125 @@ class FileUploadForm extends FormBase {
 			$p_issn = $line[$p_issnPos];
 			$e_issn = $line[$e_issnPos];
 			$lc = $line[$lcPos];
-				
-			//Verify the data is correct
-			$correct = true; //For checking if the data is correct
-				
-			//Check title
-			/*
-			if(preg_match($regTitle, $title) == 0 | preg_match($regTitle, $title) == false) {//If the title has unaccepted characters
-				$correct = false; 
-				
-				$test = $form_state->get(['tabledata', $lineCount]);
-				if(isset($test)) { //If error is already present on line concatenate the reason
-					$reason .= ", Invalid title";
-				}
-				else { //Otherwise create a new error reason
-					$reason = 'Invalid title';
-				}
-				
-				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
-			}
-			*/
 			
-			//Check L-ISSN
-			if((preg_match($regISSN, $l_issn) == 0 | preg_match($regISSN, $l_issn) == false) && $l_issn != null) {//If the ISSN is not in the right format and something is there
-				$correct = false;
-				
-				$test = $form_state->get(['tabledata', $lineCount]);
-				if(isset($test)) { //If error is already present on line concatenate the reason
-					$reason .= ", Invalid l_issn";
-				}
-				else { //Otherwise create a new error reason
-					$reason = 'Invalid l_issn';
-				}
-				
-				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
-			}
-			
-			//Check P-ISSN
-			if((preg_match($regISSN, $p_issn) == 0 | preg_match($regISSN, $p_issn) == false) && $p_issn != null) {//If the ISSN is not in the right format and something is there
-				$correct = false;
-				
-				$test = $form_state->get(['tabledata', $lineCount]);
-				if(isset($test)) { //If error is already present on line concatenate the reason
-					$reason .= ", Invalid p_issn";
-				}
-				else { //Otherwise create a new error reason
-					$reason = "Invalid p_issn";
-				}
-				
-				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
-			}
-			
-			//Check E-ISSN
-			if((preg_match($regISSN, $e_issn) == 0 | preg_match($regISSN, $e_issn) == false) && $e_issn != null) {//If the ISSN is not in the right format and something is there
-				$correct = false;
-				
-				$test = $form_state->get(['tabledata', $lineCount]);
-				if(isset($test)) { //If error is already present on line concatenate the reason
-					$reason .= ", Invalid e_issn";
-				}
-				else { //Otherwise create a new error reason
-					$reason = "Invalid e_issn";
-				}
-				
-				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
-			}
-			//Check LC
-			
-			//to make things easier, we will trim the whitespace out of the lc, and check the trimmed lc for validation instead.
-			$trimmed_lc = str_replace(' ', '', $lc);
-			
-			if((preg_match($regLC, $trimmed_lc) == 0 | preg_match($regLC, $trimmed_lc) == false) || $trimmed_lc == null) {//If the LC is invalid or is missing, line is wrong
-				$correct = false;
-				
-				$test = $form_state->get(['tabledata', $lineCount]);
-				if(isset($test)) { //If error is already present on line concatenate the reason
-					$reason .= ", Invalid lc";
-				}
-				else { //Otherwise create a new error reason
-					$reason = "Invalid lc";
-				}
-				
-				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
-			}
-				
-			//Check that at least one of e or p ISSN elements has data inside
-			$existsISSN = false;
-			if(($p_issn != null) || ($e_issn != null)) {
-				$existsISSN = true;
-			}
-			else {
-				$test = $form_state->get(['tabledata', $lineCount]);
-				if(isset($test)) { //If error is already present on line concatenate the reason
-					$reason .= ', No issn values present';
-				}
-				else { //Otherwise create a new error reason
-					$reason = 'No issn values present';
-				}
-				
-				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
-				
-			}
-			
-			if(!$correct || !$existsISSN) {
-				$form_state->set('lineError', 1); //Note that at least one line has an error, so error table will be displayed
-				$errorCount++;
-			}	
-				
-			if($correct && $existsISSN) { //If this line's data is correct and contains at least one ISSN, enter it
-			
-				//Add hyphens to ISSNs that are missing them
-				if(strlen($l_issn) == 8) {
-					$tempISSN = substr($l_issn, 0, 4) . '-' . substr($l_issn, -4, 4);
-					$l_issn = $tempISSN;
-				}
-				if(strlen($p_issn) == 8) {
-					$tempISSN = substr($p_issn, 0, 4) . '-' . substr($p_issn, -4, 4);
-					$p_issn = $tempISSN;
-				}
-				if(strlen($e_issn) == 8) {
-					$tempISSN = substr($e_issn, 0, 4) . '-' . substr($e_issn, -4, 4);
-					$e_issn = $tempISSN;
-				}
-			
-				
-				//Enter data based on which radio button was pressed
+			$reason = ""; //Holds reasons for error if there is one
+	
+			//Enter data based on which radio button was pressed
 					
-				//Add new assignments, nothing special
-				if ($issnOption == 0) {
-					$dbAdmin->insert($title, $uid, $l_issn, $p_issn, $e_issn, 0, $lc);
+			//Add new assignments, nothing special
+			if ($issnOption == 0) {
+				$insert = $dbAdmin->insert($title, $l_issn, $p_issn, $e_issn, $lc);
+				if($insert[0] == 0) { //If there are errors
+					foreach($insert[1] as $error) { //Add them to reason
+						$reason .= $error . ', ';
+					}
+					$reason = rtrim($reason, ','); //trim the last comma
+					$reason = '"' . $reason . '"'; //Put the reason in quotes
+					$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
+					$errorCount++;
+				}	
+			}
+			//Replace own assignments
+			else if ($issnOption == 1) {
+				//Do a query for each ISSN type, look for entries with matching user ID
+						
+				if($l_issn != null) {
+					//Search for L-ISSN
+					$results = $dbAdmin->selectByISSN($l_issn);
+					foreach($results as $entry) {
+						if($entry->user == $uid) { //If the uid is matching
+							$dbAdmin->deleteLCById($entry->id);
+						}
+					}
+				}	
+				if($p_issn != null) {
+					//Search for P-ISSN
+					$results = $dbAdmin->selectByISSN($p_issn);
+					foreach($results as $entry) {
+						if($entry->user == $uid) { //If the uid is matching
+							$dbAdmin->deleteLCById($entry->id);
+						}
+					}
+				}		
+				if($e_issn != null) {
+					//Search for E-ISSN
+					$results = $dbAdmin->selectByISSN($e_issn);
+					foreach($results as $entry) {
+						if($entry->user == $uid) { //If the uid is matching
+							$dbAdmin->deleteLCById($entry->id);
+						}
+					}
+				}	
+				//Now add the new entry
+				$insert = $dbAdmin->insert($title, $l_issn, $p_issn, $e_issn, $lc);
+				if($insert[0] == 0) { //If there are errors
+					foreach($insert[1] as $error) { //Add them to reason
+						$reason .= $error . ', ';
+					}
+					$reason = rtrim($reason, ','); //trim the last comma
+					$reason = '"' . $reason . '"'; //Put the reason in quotes
+					$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
+					$errorCount++;
 				}
-				//Replace own assignments
-				else if ($issnOption == 1) {
-					//Do a query for each ISSN type, look for entries with matching user ID
-						
-					if($l_issn != null) {
-						//Search for L-ISSN
-						$results = $dbAdmin->selectByISSN($l_issn);
-						foreach($results as $entry) {
-							if($entry->user == $uid) { //If the uid is matching
-								$dbAdmin->deleteLCById($entry->id);
-							}
-						}
-					}
-						
-					if($p_issn != null) {
-						//Search for P-ISSN
-						$results = $dbAdmin->selectByISSN($p_issn);
-						foreach($results as $entry) {
-							if($entry->user == $uid) { //If the uid is matching
-								$dbAdmin->deleteLCById($entry->id);
-							}
-						}
-					}
-						
-					if($e_issn != null) {
-						//Search for E-ISSN
-						$results = $dbAdmin->selectByISSN($e_issn);
-						foreach($results as $entry) {
-							if($entry->user == $uid) { //If the uid is matching
-								$dbAdmin->deleteLCById($entry->id);
-							}
-						}
-					}
-						
-					//Now add the new entry
-					$dbAdmin->insert($title, $uid, $l_issn, $p_issn, $e_issn, 0, $lc);
-				}
-				//Replace institution assignments
-				else if ($issnOption == 2) {
-					//Do a query for each ISSN type, look for entries with matching institution
+			}
+			//Replace institution assignments
+			else if ($issnOption == 2) {
+				//Do a query for each ISSN type, look for entries with matching institution
 					
-					if($l_issn != null) {
-						//Search for L-ISSN
-						$results = $dbAdmin->selectByISSN($l_issn);
-						foreach($results as $entry) {
-							$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-							$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
-							if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
-								$dbAdmin->deleteLCById($entry->id); //Delete this entry
-							}
+				if($l_issn != null) {
+					//Search for L-ISSN
+					$results = $dbAdmin->selectByISSN($l_issn);
+					foreach($results as $entry) {
+						$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+						$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
+						if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
+							$dbAdmin->deleteLCById($entry->id); //Delete this entry
 						}
 					}
-						
-					if($p_issn != null) {
-						//Search for P-ISSN
-						$results = $dbAdmin->selectByISSN($p_issn);
-						foreach($results as $entry) {
-							$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-							$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
-							if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
-								$dbAdmin->deleteLCById($entry->id); //Delete this entry
-							}		
-						}
+				}		
+				if($p_issn != null) {
+					//Search for P-ISSN
+					$results = $dbAdmin->selectByISSN($p_issn);
+					foreach($results as $entry) {
+						$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+						$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
+						if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
+							$dbAdmin->deleteLCById($entry->id); //Delete this entry
+						}		
 					}
-						
-					if($e_issn != null) {			
-						//Search for E-ISSN
-						$results = $dbAdmin->selectByISSN($p_issn);
-						foreach($results as $entry) {
-							$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
-							$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
-							if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
-								$dbAdmin->deleteLCById($entry->id); //Delete this entry
-							}			
-						}
+				}	
+				if($e_issn != null) {			
+					//Search for E-ISSN
+					$results = $dbAdmin->selectByISSN($p_issn);
+					foreach($results as $entry) {
+						$entryInstitution = $dbAdmin->getUserInstitution($entry->user); //Get the institution name corresponding to this entry
+						$userInstitution = $dbAdmin->getUserInstitution($uid); //Get user's institution
+						if(strcmp($userInstitution, $entryInstitution) == 0) { //If the institutions are the same
+							$dbAdmin->deleteLCById($entry->id); //Delete this entry
+						}			
 					}
-						
-					//Now add the new entry
-					$dbAdmin->insert($title, $uid, $l_issn, $p_issn, $e_issn, 0, $lc);
+				}		
+				//Now add the new entry
+				$insert = $dbAdmin->insert($title, $l_issn, $p_issn, $e_issn, $lc);
+				if($insert[0] == 0) { //If there are errors
+					foreach($insert[1] as $error) { //Add them to reason
+						$reason .= $error . ', ';
+					}
+					$reason = rtrim($reason, ','); //trim the last comma
+					$reason = '"' . $reason . '"'; //Put the reason in quotes
+					$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
+					$errorCount++;
 				}
 			}
 		}
 	}
 	
+	if($errorCount > 0)
+		$form_state->set('lineError', 1); //Note there is one error at least
+	
 	if($headersCorrect) {
 		drupal_set_message("Upload Complete");
-		drupal_set_message("File contained " . $lineCount . " entries");
+		drupal_set_message("File contained " . ($lineCount - 1) . " entries");
 		if($form_state->get('lineError') == 1) {
 			drupal_set_message($errorCount . " entries were invalid and were not uploaded to the database (More info below)", 'warning');
 			
