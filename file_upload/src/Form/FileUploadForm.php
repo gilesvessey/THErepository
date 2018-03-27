@@ -143,7 +143,10 @@ class FileUploadForm extends FormBase {
   }
 	
 	
-  public function validateForm(array &$form, FormStateInterface $form_state) {}
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+	  drupal_set_message(t("NOTE: Large files will take time to process.<br />
+							After submitting, you may wait, close this page, or <a href='https://issn.researchspaces.ca/'>Click HERE</a> to leave this page (your information will still be processed and you will be emailed the results when complete."));
+	}
 	
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // Handle submitted values in $form_state here.
@@ -428,10 +431,9 @@ class FileUploadForm extends FormBase {
 	
 	return $form;
   }
-
   public function downloadForm(array &$form, FormStateInterface $form_state) {
 	$fileLocation = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
-	$fileName = "Invalids.txt";
+	$fileName = "Invalids". uniqid() .".txt";
 	$file = fopen($fileLocation . $fileName, "w");
 	fwrite($file, "Line#,p_issn,e_issn,l_issn,lc,title,Reason(s)\n"); //write header to file
 	foreach($form_state->get('tabledata') as $row) {
@@ -442,9 +444,17 @@ class FileUploadForm extends FormBase {
 	
 	//Serve the file to the user
 	header('Content-Description: File Transfer');
-    header('Content-Type: application/octet-stream');
+    	header('Content-Type: application/octet-stream');
 	header('Content-Disposition: attachment; filename="'.$fileName.'"');
 	readfile($fileLocation . $fileName);
+	
+	// send an email message when done
+	//$to = "tim@pro-grammering.com";
+	//$from = "no-replay@issn.researchspaces.ca";
+	//$subject = "ISSN Upload Report";
+	//$body = "Your file has been processed. Your report is available <a href='http://www.issn.researchspaces.ca/".$fileLocation . $fileName."'>HERE</a>.";
+	//simple_mail_send($from, $to, $subject, $body);
+		
 	exit;
   }
   
