@@ -449,8 +449,9 @@ class FileUploadForm extends FormBase {
 	readfile($fileLocation . $fileName);
 	
 	// send an email message when done
-	$to = \Drupal\user\Entity\User::load($user)->get("mail")->value;
-	$from = "no-replay@issn.researchspaces.ca";
+	$user = \Drupal::currentUser();
+	$to = $user->getEmail();
+	$from = "no-reply@issn.researchspaces.ca";
 	$subject = "ISSN Upload Report";
 	$body = "Your file has been processed. Your report is available <a href='http://www.issn.researchspaces.ca/".$fileLocation . $fileName."'>HERE</a>.";
 	simple_mail_send($from, $to, $subject, $body);
