@@ -8,6 +8,24 @@ use Drupal\Core\File\File;
 class FileUploadForm extends FormBase {
 	
   public function buildForm(array $form, FormStateInterface $form_state) {
+	
+	//Message about uploading
+	$form['upload_message'] = [
+		'#type' => 'item',
+		'#description' => t("NOTE: Large files will take time to process.<br />
+							After submitting, leave this page open to receive your report.<br />
+							-OR-<br />
+							After submitting, you may close this page, or <a href='https://issn.researchspaces.ca/'>Click HERE</a> to leave this page (your information will still be processed.)"),
+	];  
+	  
+	//Link to info page. Opens in a new window/tab
+	$form['info_link'] = [
+		'#type' => 'item',
+		'#markup' => "<a href='about_upload' target='_blank'>For more info about upload requirements, click here.</a>",
+	];  
+	
+	
+	  
 	  
 	//After submission, if there were any invalid lines, print them to this table
 	if($form_state->get('submitted') == 1 && $form_state->get('lineError') == 1) {
@@ -83,12 +101,6 @@ class FileUploadForm extends FormBase {
 		}
 	}
 	else { //Otherwise, print all the input elements
-	
-		//Link to info page. Opens in a new window/tab
-		$form['info_link'] = [
-			'#type' => 'item',
-			'#markup' => "<a href='about_upload' target='_blank'>For more info about upload requirements, click here.</a>",
-		];
 			
 		//File upload element
 		$form['file_upload'] = [
@@ -144,8 +156,7 @@ class FileUploadForm extends FormBase {
 	
 	
   public function validateForm(array &$form, FormStateInterface $form_state) {
-	  drupal_set_message(t("NOTE: Large files will take time to process.<br />
-							After submitting, you may wait, close this page, or <a href='https://issn.researchspaces.ca/'>Click HERE</a> to leave this page (your information will still be processed and you will be emailed the results when complete."));
+	
 	}
 	
   public function submitForm(array &$form, FormStateInterface $form_state) {
@@ -444,14 +455,14 @@ class FileUploadForm extends FormBase {
 	
 	//Serve the file to the user
 	header('Content-Description: File Transfer');
-    	header('Content-Type: application/octet-stream');
+    header('Content-Type: application/octet-stream');
 	header('Content-Disposition: attachment; filename="'.$fileName.'"');
 	readfile($fileLocation . $fileName);
 	
 	// send an email message when done
 	$user = \Drupal::currentUser();
 	$to = $user->getEmail();
-	$from = "no-reply@issn.researchspaces.ca";
+	$from = "no-reply@issn.researchspaces.ca"; //this can be changed to a real address if desired
 	$subject = "ISSN Upload Report";
 	$body = "Your file has been processed. Your report is available <a href='http://www.issn.researchspaces.ca/".$fileLocation . $fileName."'>HERE</a>.";
 	simple_mail_send($from, $to, $subject, $body);
