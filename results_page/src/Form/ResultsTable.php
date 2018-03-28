@@ -54,13 +54,13 @@ class ResultsTable extends ConfigFormBase
             $records = count($recordSet);
             $form['download_tsv1'] = [
       				'#type' => 'submit',
-      				'#value' => $this->t('Downlaod as tsv'),
+      				'#value' => $this->t('Download as tsv'),
       				'#submit' => array('::downloadForm_tsv'),
       			];
 
       			$form['download_csv1'] = [
       				'#type' => 'submit',
-      				'#value' => $this->t('Downlaod as csv'),
+      				'#value' => $this->t('Download as csv'),
       				'#submit' => array('::downloadForm_csv'),
       			];
 

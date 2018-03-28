@@ -56,7 +56,7 @@ class DBAdmin
 		$e_issn = trim($e_issn, '"');
 		$lc = trim($lc, '"');
 		
-		//Remove all quotes from title, and replace one set - this is incase there are many sets of quotes
+		//Remove all quotes from title, and replace one set - this is in case there are many sets of quotes
 		$title = str_replace('"', "", $title);
 		$title = '"' . $title . '"';
 		
@@ -172,17 +172,11 @@ class DBAdmin
 					issn.issn_l as issn_l,
 					issn.p_issn as p_issn,
 					issn.e_issn as e_issn,
-					issn.modified as modified,
-					institution.name as name,
 					lc.lc as lc,
 					lc.user_id as user_id					
 				FROM lc
 				LEFT OUTER JOIN issn
 					ON issn.id = lc.issn_id
-					LEFT OUTER JOIN user_institution
-						ON user_institution.user_id = lc.user_id
-						LEFT OUTER JOIN institution
-						ON institution.id = user_institution.institution_id;
 				";
 				
 		$result = db_query($sql);
@@ -192,15 +186,13 @@ class DBAdmin
 		{
 			$id = $record->id;
 			$title = $record->title;
-			$modified = $record->modified;
 			$issn_l = $record->issn_l;
 			$p_issn = $record->p_issn;
 			$e_issn = $record->e_issn;
 			$callnumber = $record->lc;
-			$source = $record->name;
 			$user = $record->user_id;
 			
-			$recordSet[$setIndex]  = new DBRecord($id, $title, $source, $issn_l, $p_issn, $e_issn, '', $callnumber, $modified, $user);
+			$recordSet[$setIndex]  = new DBRecord($id, $title, 0, $issn_l, $p_issn, $e_issn, '', $callnumber, 0, $user);
 			$setIndex++;
 		}
 		
