@@ -731,7 +731,7 @@ class DBAdmin
 	
 	//Selects all entry from the issn table which has the entered id
 	//Returns an array of arrays of entries containing id, title, l_issn, p_issn, e_issn
-	public function selectISSNByID($id) {
+	public function selectISSNById($id) {
 		$database = \Drupal::database();
 		$sql = "SELECT 
 					issn.id as id,
