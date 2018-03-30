@@ -34,9 +34,8 @@ class DBAdmin
 		//P-ISSN, match regex, or blank
 		if((preg_match($regISSN, $p_issn) != 1) && $p_issn != null)
 			array_push($errors, 'Invalid P-ISSN');
-		else if((strpos($p_issn, '-') == false) && $p_issn != null) { //Add hyphen if missing
+		else if((strpos($p_issn, '-') == false) && $p_issn != null) //Add hyphen if missing
 			$p_issn = substr($p_issn, 0, 4) . '-' . substr($p_issn, -4, 4);
-		}
 		//E-ISSN, match regex, or blank
 		if((preg_match($regISSN, $e_issn) != 1) && $e_issn != null)
 			array_push($errors, 'Invalid E-ISSN');
@@ -74,11 +73,11 @@ class DBAdmin
 			
 			//Check database for existing issn id's for inputted issns
 			if($l_issn != null)
-				$existingISSN_l = $this->getISSNId($l_issn);
+				$existingISSN_l = $this->getISSNIdByL($l_issn);
 			if($p_issn != null)
-				$existingISSN_p = $this->getISSNId($p_issn);
+				$existingISSN_p = $this->getISSNIdByP($p_issn);
 			if($e_issn != null)
-				$existingISSN_e = $this->getISSNId($e_issn);
+				$existingISSN_e = $this->getISSNIdByE($e_issn);
 			
 			//only insert the ISSN if that ISSN doesn't already exist
 			if($existingISSN_l == null && $existingISSN_p == null && $existingISSN_e == null) {		
@@ -345,36 +344,6 @@ class DBAdmin
 		return $recordSet;
 	}
 	
-	public function getISSNId($issn)
-	{
-		/*
-		returns a single int (ID)
-		returns a 0 on no result
-		*/
-		if($issn == '')
-			$issn = 0;
-		
-		$database = \Drupal::database();
-		$sql = "SELECT 
-					issn.id as id					
-				FROM issn
-				WHERE issn.issn_l = '$issn'
-					OR issn.p_issn = '$issn'
-					OR issn.e_issn = '$issn';
-				";
-				
-		$result = db_query($sql);
-		
-		$id = null;
-		
-		foreach($result as $record)
-		{
-			$id = $record->id;
-		}
-		
-		return $id;
-	}
-	
     public function recordCount()
    	{
 		$database = \Drupal::database();
@@ -390,7 +359,7 @@ class DBAdmin
 	public function deleteLCById($id)
 	{
 		$database = \Drupal::database();	
-		$result = $database->query("DELETE FROM {lc} WHERE id = :id", [':id' => $id]);
+		$database->query("DELETE FROM {lc} WHERE id = :id", [':id' => $id]);
 		
 		return "$id deleted.";
 	}
@@ -509,11 +478,392 @@ class DBAdmin
         $output = [];
 		foreach($list as $record) {
 			$output[$i] = [$record->id, $record->name, $record->domain];
-                        $i++;
+            $i++;
 		}
 		
 		return $output;
 
     }
+	
+	/*
+		For ISSN Table
+	*/
+	
+	//Inserts an entry into the ISSN table
+	//Checks that values are valid ISSNs and that there is no existing issn values that are the same
+	//Outputs an array of two values
+	//On success - the id of the new value, and an empty array
+	//On failure - a 0, and an array of reasons for failure
+	public function insertISSN($l_issn, $p_issn, $e_issn, $title){
+		$database = \Drupal::database();
+		
+		//First trim leading and trailing whitespace that may exist
+		$l_issn = trim($l_issn);
+		$p_issn = trim($p_issn);
+		$e_issn = trim($e_issn);
+		$title = trim($title);
+		
+		//Add quotes around title if they're not present
+		if(((substr($title, 0, 1) != '"') || (substr($title, -1, 1) != '"')) && $title != null)
+			$title = '"' . $title . '"';
+		
+		$regISSN = '/^"?[0-9]{4}-?[0-9]{3}([0-9]|(X|x))"?$/'; //Accepts an ISSN with or without a hyphen, can be in quotes or not
+		
+		$errors = []; //Holds error messages
+		
+		//Make sure one of p or e issn is present
+		if(($p_issn == null) && ($e_issn == null))
+			array_push($errors, 'No P or E ISSN Present');
+		//L-ISSN, match regex, or blank
+		if((preg_match($regISSN, $l_issn) != 1) && $l_issn != null)
+			array_push($errors, 'Invalid L-ISSN');
+		else if((strpos($l_issn, '-') == false) && $l_issn != null) //Add hyphen if missing
+			$l_issn = substr($l_issn, 0, 4) . '-' . substr($l_issn, -4, 4);
+		//P-ISSN, match regex, or blank
+		if((preg_match($regISSN, $p_issn) != 1) && $p_issn != null)
+			array_push($errors, 'Invalid P-ISSN');
+		else if((strpos($p_issn, '-') == false) && $p_issn != null) //Add hyphen if missing
+			$p_issn = substr($p_issn, 0, 4) . '-' . substr($p_issn, -4, 4);
+		//E-ISSN, match regex, or blank
+		if((preg_match($regISSN, $e_issn) != 1) && $e_issn != null)
+			array_push($errors, 'Invalid E-ISSN');
+		else if((strpos($e_issn, '-') == false) && $e_issn != null) //Add hyphen if missing
+			$e_issn = substr($e_issn, 0, 4) . '-' . substr($e_issn, -4, 4);
+		
+		//Make all characters in issns uppercase
+		$l_issn = strtoupper($l_issn);
+		$p_issn = strtoupper($p_issn);
+		$e_issn = strtoupper($e_issn);
+		
+		//Check database for existing entries for inputted issns
+		if($p_issn != null) {
+			$existingISSN_p = $this->getISSNIdByP($p_issn);
+			if($existingISSN_p != 0) {
+				array_push($errors, 'P-ISSN already exists');
+			}
+		}
+		if($e_issn != null) {
+			$existingISSN_e = $this->getISSNIdByE($e_issn);
+			if($existingISSN_p != 0) {
+				array_push($errors, 'E-ISSN already exists');
+			}
+		}
+		if($l_issn != null) {
+			$existingISSN_l = $this->getISSNIdByL($l_issn);
+			if($existingISSN_p != 0) {
+				array_push($errors, 'L-ISSN already exists');
+			}
+		}
+		
+		//Insert only if there are no errors
+		if(empty($errors)) {
+			$database->insert('issn');
+			$fields = [
+				'title' => $title,
+				'issn_l' => $l_issn,
+				'p_issn' => $p_issn,
+				'e_issn' => $e_issn,
+			];
+			$id = $database->insert('issn')->fields($fields)->execute();
+		}
+		else {
+			$id = 0;
+		}
+		
+		return [$id, $errors];
+	}
+	
+	//Deletes all LC assignments tied to this ISSN, then deletes it
+	public function deleteISSN($id){
+		$database = \Drupal::database();	
+		$database->query("DELETE FROM {lc} WHERE issn_id = :id", [':id' => $id]);
+		$database->query("DELETE FROM {issn} WHERE id = :id", [':id' => $id]);
+		
+		return "$id deleted.";
+	}
+	
+	//Edits an entry in the ISSN table to have the new supplied values
+	//Checks that there are no existing values for each issn first, other than supplied id
+	//Outputs an array of two values
+	//On success - the id of the new value, and an empty array
+	//On failure - a 0, and an array of reasons for failure
+	public function editISSN($id, $l_issn, $p_issn, $e_issn, $title) {
+		//First trim leading and trailing whitespace that may exist
+		$l_issn = trim($l_issn);
+		$p_issn = trim($p_issn);
+		$e_issn = trim($e_issn);
+		$title = trim($title);
+		
+		//Add quotes around title if they're not present
+		if(((substr($title, 0, 1) != '"') || (substr($title, -1, 1) != '"')) && $title != null)
+			$title = '"' . $title . '"';
+		
+		$regISSN = '/^"?[0-9]{4}-?[0-9]{3}([0-9]|(X|x))"?$/'; //Accepts an ISSN with or without a hyphen, can be in quotes or not
+		
+		$errors = []; //Holds error messages
+		
+		//Make sure one of p or e issn is present
+		if(($p_issn == null) && ($e_issn == null))
+			array_push($errors, 'No P or E ISSN Present');
+		//L-ISSN, match regex, or blank
+		if((preg_match($regISSN, $l_issn) != 1) && $l_issn != null)
+			array_push($errors, 'Invalid L-ISSN');
+		else if((strpos($l_issn, '-') == false) && $l_issn != null) //Add hyphen if missing
+			$l_issn = substr($l_issn, 0, 4) . '-' . substr($l_issn, -4, 4);
+		//P-ISSN, match regex, or blank
+		if((preg_match($regISSN, $p_issn) != 1) && $p_issn != null)
+			array_push($errors, 'Invalid P-ISSN');
+		else if((strpos($p_issn, '-') == false) && $p_issn != null) //Add hyphen if missing
+			$p_issn = substr($p_issn, 0, 4) . '-' . substr($p_issn, -4, 4);
+		//E-ISSN, match regex, or blank
+		if((preg_match($regISSN, $e_issn) != 1) && $e_issn != null)
+			array_push($errors, 'Invalid E-ISSN');
+		else if((strpos($e_issn, '-') == false) && $e_issn != null) //Add hyphen if missing
+			$e_issn = substr($e_issn, 0, 4) . '-' . substr($e_issn, -4, 4);
+		
+		//Make all characters in issns uppercase
+		$l_issn = strtoupper($l_issn);
+		$p_issn = strtoupper($p_issn);
+		$e_issn = strtoupper($e_issn);
+		
+		//Check database for existing entries for inputted issns, other than current one being edited
+		if($p_issn != null) {
+			$existingISSN_p = $this->getISSNIdByP($p_issn);
+			if($existingISSN_p != 0 && $existingISSN_p !=  $id) {
+				array_push($errors, 'P-ISSN exists in another entry');
+			}
+		}
+		if($e_issn != null) {
+			$existingISSN_e = $this->getISSNIdByE($e_issn);
+			if($existingISSN_p != 0 && $existingISSN_e !=  $id) {
+				array_push($errors, 'E-ISSN exists in another entry');
+			}
+		}
+		if($l_issn != null) {
+			$existingISSN_l = $this->getISSNIdByL($l_issn);
+			if($existingISSN_p != 0 && $existingISSN_l !=  $id) {
+				array_push($errors, 'L-ISSN exists in another entry');
+			}
+		}
+		
+		//Edit only if there are no errors
+		if(empty($errors)) {
+			$database->query("UPDATE {issn} SET issn_l = :l_issn, p_issn = :p_issn, e_issn = :e_issn, title = :title WHERE id = :id", [':id' => $id, ':l_issn' => $l_issn, ':p_issn' => $p_issn, ':e_issn' => $e_issn, ':title' => $title]); 
+		}
+		else {
+			$id = 0;
+		}
+		
+		return [$id, $errors];
+	}
+	
+	//Gets ID of entry with entered p-issn
+	public function getISSNIdByP($p_issn) {
+		if($p_issn == '')
+			$p_issn = 0;
+		
+		$database = \Drupal::database();
+		$sql = "SELECT 
+					issn.id as id					
+				FROM issn
+				WHERE issn.p_issn = '$p_issn'
+				";
+				
+		$result = db_query($sql);
+		
+		$id = null;
+		
+		foreach($result as $record)
+		{
+			$id = $record->id;
+		}
+		
+		return $id;
+	}
+	
+	//Gets ID of entry with entered e-issn
+	public function getISSNIdByE($e_issn) {
+		if($e_issn == '')
+			$e_issn = 0;
+		
+		$database = \Drupal::database();
+		$sql = "SELECT 
+					issn.id as id					
+				FROM issn
+				WHERE issn.e_issn = '$e_issn'
+				";
+				
+		$result = db_query($sql);
+		
+		$id = null;
+		
+		foreach($result as $record)
+		{
+			$id = $record->id;
+		}
+		
+		return $id;
+	}
+	
+	//Gets ID of entry with entered l-issn
+	public function getISSNIdByL($l_issn) {
+		if($l_issn == '')
+			$l_issn = 0;
+		
+		$database = \Drupal::database();
+		$sql = "SELECT 
+					issn.id as id					
+				FROM issn
+				WHERE issn.l_issn = '$l_issn'
+				";
+				
+		$result = db_query($sql);
+		
+		$id = null;
+		
+		foreach($result as $record)
+		{
+			$id = $record->id;
+		}
+		
+		return $id;
+	}
+	
+	//Selects all entry from the issn table which has the entered id
+	//Returns an array of arrays of entries containing id, title, l_issn, p_issn, e_issn
+	public function selectISSNByID($id) {
+		$database = \Drupal::database();
+		$sql = "SELECT 
+					issn.id as id,
+					issn.title as title,
+					issn.issn_l as l_issn,
+					issn.p_issn as p_issn,
+					issn.e_issn as e_issn,				
+				FROM issn
+				WHERE issn.id = $id;
+				";
+				
+		$result = db_query($sql);
+		
+		$recordSet = array();
+		$setIndex = 0;
+		
+		foreach($result as $record)
+		{
+			$id = $record->id;
+			$title = $record->title;
+			$l_issn = $record->l_issn;
+			$p_issn = $record->p_issn;
+			$e_issn = $record->e_issn;
+			
+			$recordSet[$setIndex]  = [$id, $l_issn, $p_issn, $e_issn, $title];
+			$setIndex++;
+		}
+		
+		return $recordSet;
+	}
+	
+	//Selects all entries from the issn table that contain supplied issn
+	//Returns an array of arrays of entries containing id, title, l_issn, p_issn, e_issn
+	public function selectISSNbyISSN($issn) {
+		$database = \Drupal::database();
+		$sql = "SELECT 
+					issn.id as id,
+					issn.title as title,
+					issn.issn_l as l_issn,
+					issn.p_issn as p_issn,
+					issn.e_issn as e_issn,				
+				FROM issn
+				WHERE issn.issn_l = '$issn'
+					OR issn.p_issn = '$issn'
+					OR issn.e_issn = '$issn';
+				";
+				
+		$result = db_query($sql);
+		
+		$recordSet = array();
+		$setIndex = 0;
+		
+		foreach($result as $record)
+		{
+			$id = $record->id;
+			$title = $record->title;
+			$l_issn = $record->l_issn;
+			$p_issn = $record->p_issn;
+			$e_issn = $record->e_issn;
+			
+			$recordSet[$setIndex]  = [$id, $l_issn, $p_issn, $e_issn, $title];
+			$setIndex++;
+		}
+		
+		return $recordSet;
+	}
+	
+	//Selects all entries from ISSN table
+	//Returns an array of arrays of entries containing id, title, l_issn, p_issn, e_issn
+	public function selectAllISSN() {
+		$database = \Drupal::database();
+		$sql = "SELECT 
+					issn.id as id,
+					issn.title as title,
+					issn.issn_l as l_issn,
+					issn.p_issn as p_issn,
+					issn.e_issn as e_issn,				
+				FROM issn
+				";
+				
+		$result = db_query($sql);
+		
+		$recordSet = array();
+		$setIndex = 0;
+		
+		foreach($result as $record)
+		{
+			$id = $record->id;
+			$title = $record->title;
+			$l_issn = $record->l_issn;
+			$p_issn = $record->p_issn;
+			$e_issn = $record->e_issn;
+			
+			$recordSet[$setIndex]  = [$id, $l_issn, $p_issn, $e_issn, $title];
+			$setIndex++;
+		}
+		
+		return $recordSet;
+	}
+	
+	
+	
+	//*Note* Possibly now unused
+	//Returns id for issn if it exists
+	public function getISSNId($issn)
+	{
+		/*
+		returns a single int (ID)
+		returns a 0 on no result
+		*/
+		if($issn == '')
+			$issn = 0;
+		
+		$database = \Drupal::database();
+		$sql = "SELECT 
+					issn.id as id					
+				FROM issn
+				WHERE issn.issn_l = '$issn'
+					OR issn.p_issn = '$issn'
+					OR issn.e_issn = '$issn';
+				";
+				
+		$result = db_query($sql);
+		
+		$id = null;
+		
+		foreach($result as $record)
+		{
+			$id = $record->id;
+		}
+		
+		return $id;
+	}
 }
 ?>
