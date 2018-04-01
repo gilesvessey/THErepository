@@ -1,0 +1,7 @@
+issn_upload.form:
+ path: '/issn_upload'
+ defaults:
+   _title: 'ISSN Uploading:'
+   _form: '\Drupal\file_upload\Form\ISSNUploadForm'
+ requirements:
+   _permission: 'issn_upload access_content_perm'
