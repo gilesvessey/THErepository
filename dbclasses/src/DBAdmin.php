@@ -714,7 +714,7 @@ class DBAdmin
 		$sql = "SELECT 
 					issn.id as id					
 				FROM issn
-				WHERE issn.l_issn = '$l_issn'
+				WHERE issn.issn_l = '$l_issn'
 				";
 				
 		$result = db_query($sql);

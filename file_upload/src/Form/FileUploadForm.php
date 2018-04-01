@@ -290,7 +290,7 @@ class FileUploadForm extends FormBase {
 			}
 			else { //If the header value is none of the accepted values, header is wrong
 				$headersCorrect = false;
-				drupal_set_message('Invalid value present in header: ' . $header, 'error');
+				drupal_set_message('Invalid value present in header, or missing value: ' . $header, 'error');
 			}
 			
 			$counter++; //Increment current header position
@@ -313,6 +313,13 @@ class FileUploadForm extends FormBase {
 			$p_issn = $line[$p_issnPos];
 			$e_issn = $line[$e_issnPos];
 			$lc = $line[$lcPos];
+			
+			//Trim whitespace, helps with invalids output file
+			$l_issn = trim($l_issn);
+			$p_issn = trim($p_issn);
+			$e_issn = trim($e_issn);
+			$title = trim($title);
+			$lc = trim($lc);
 			
 			$reason = ""; //Holds reasons for error if there is one
 	

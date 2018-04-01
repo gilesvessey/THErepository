@@ -34,7 +34,6 @@ class ISSNUploadForm extends FormBase {
 				t('p_issn'),
 				t('e_issn'),
 				t('l_issn'),
-				t('lc'),
 				t('title'),
 				t('Reason(s)'),
 			),
@@ -71,13 +70,13 @@ class ISSNUploadForm extends FormBase {
 			//Title
 			$form['table'][$counter]['title'] = array(
 				'#type' => 'item',
-				'#description' => $row[5],
+				'#description' => $row[4],
 			);
 			
 			//Reason for line being declined
 			$form['table'][$counter]['Reason(s)'] = array(
 				'#type' => 'item',
-				'#description' => $row[6],
+				'#description' => $row[5],
 			);
 			
 			$counter++;
@@ -254,9 +253,13 @@ class ISSNUploadForm extends FormBase {
 				foreach($insert[1] as $error) { //Add them to reason
 					$reason .= $error . ', ';
 				}
-				$reason = rtrim($reason, ','); //trim the last comma
+				//Trim whitespace before uploading reason error line, helps with the output file
+				$l_issn = trim($l_issn);
+				$p_issn = trim($p_issn);
+				$e_issn = trim($e_issn);
+				$title = trim($title);
 				$reason = '"' . $reason . '"'; //Put the reason in quotes
-				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
+				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $title, $reason]);
 				$errorCount++;
 			}	
 			
