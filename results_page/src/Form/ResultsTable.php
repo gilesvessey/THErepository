@@ -64,6 +64,12 @@ class ResultsTable extends ConfigFormBase
       				'#submit' => array('::downloadForm_csv'),
       			];
 
+            $form['download_json1'] = [
+      				'#type' => 'submit',
+      				'#value' => $this->t('Download as json'),
+      				'#submit' => array('::downloadForm_json'),
+      			];
+
             $form['table'] = array(
                 '#type' => 'table',
                 '#caption' => ('Showing first ' . min($form_state->get('resultsshown'), $records) . ' rows out of ' . $records . ' total results.'),
@@ -544,6 +550,7 @@ class ResultsTable extends ConfigFormBase
   	public function downloadForm_tsv(array &$form, FormStateInterface $form_state)
   	{
   		$recordSet = $this->getRecordSet($form_state->get('searchtype'), $form_state->get('searchterm'), $form_state->get('institutions'));
+      $fileLocation = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
       $fileName2 = "Download.tsv";
       $file2 = fopen($fileLocation . $fileName2, "w");
       fwrite($file2, "Title\tLinking ISSN\tPrint ISSN\tElectronic ISSN\tLC call number\tSource\n"); // write header to file
@@ -553,6 +560,25 @@ class ResultsTable extends ConfigFormBase
       }
       fclose($file2);
   		$url = Url::fromUri('base:sites/default/files/downloads/Download.tsv');
+  		$form_state->setRedirectUrl($url);
+  		//return $form;
+  	}
+
+    public function downloadForm_json(array &$form, FormStateInterface $form_state)
+  	{
+  		$recordSet = $this->getRecordSet($form_state->get('searchtype'), $form_state->get('searchterm'), $form_state->get('institutions'));
+      $fileLocation = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
+      $fileName = "Download.json";
+      $file = fopen($fileLocation . $fileName, "w");
+      fwrite($file, "{\n\tResult page: ["); // write header to file
+      $doublequotes = "\"\"";
+      foreach ($recordSet as $record) {
+          $printOut2 = "\n\t\t{Title: $record->title, \n\t\tISSN: $record->issn_l, \n\t\tP_ISSN: $record->p_issn, \n\t\tE_ISSN: $record->e_issn, \n\t\tCALL NUMBER: $record->callnumber, \n\t\tSOURCE: $record->source},";
+          fwrite($file, $printOut);
+      }
+      fwrite($file, "\t]\n}");
+      fclose($file);
+  		$url = Url::fromUri('base:sites/default/files/downloads/Download.json');
   		$form_state->setRedirectUrl($url);
   		//return $form;
   	}
