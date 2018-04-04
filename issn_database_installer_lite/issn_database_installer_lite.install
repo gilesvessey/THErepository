@@ -22,7 +22,7 @@ function issn_database_installer_lite_schema()
 			'title' => [
 				'description' => 'Title of work.',
 				'type' => 'varchar',
-				'length' => 200,
+				'length' => 500,
 				'not null' => FALSE,
 			],
 			'issn_l' => [
