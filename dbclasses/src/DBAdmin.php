@@ -291,8 +291,8 @@ class DBAdmin
 			$setIndex++;
 		}
 		
-		if(empty($recordSet))
-			$recordSet = null;
+		//if(empty($recordSet))
+			//$recordSet = null;
 		
 		return $recordSet;
 	}
