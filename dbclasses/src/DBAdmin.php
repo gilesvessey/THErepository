@@ -301,8 +301,6 @@ class DBAdmin
 					issn.p_issn as p_issn,
 					issn.e_issn as e_issn,
 					issn.modified as modified,
-					institution.name as name,
-					lc.lc as lc,
 					user__field_institution.field_institution_value as name,
 					lc.lc as lc,
 					lc.user_id as user_id					
