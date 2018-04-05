@@ -471,7 +471,7 @@ class FileUploadForm extends FormBase {
 	$to = $user->getEmail();
 	$from = "noreply@upei.ca"; //this can be changed to a real address if desired
 	$subject = "ISSN Upload Report";
-	$body = "Your file has been processed. Your report is available <a href='http://www.issn.researchspaces.ca/".$fileLocation . $fileName."'>HERE</a>.";
+	$body = "Your file has been processed. Your report is available <a href='http://issn.researchspaces.ca/".$fileLocation . $fileName."'>HERE</a>.";
 	simple_mail_send($from, $to, $subject, $body);
 		
 	exit;
