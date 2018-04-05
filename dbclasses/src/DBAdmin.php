@@ -125,16 +125,14 @@ class DBAdmin
 					issn.p_issn as p_issn,
 					issn.e_issn as e_issn,
 					issn.modified as modified,
-					institution.name as name,
+					user__field_institution.field_institution_value as name,
 					lc.lc as lc,
 					lc.user_id as user_id					
 				FROM lc
 				LEFT OUTER JOIN issn
 					ON issn.id = lc.issn_id
-					LEFT OUTER JOIN user_institution
-						ON user_institution.user_id = lc.user_id
-						LEFT OUTER JOIN institution
-						ON institution.id = user_institution.institution_id
+					LEFT OUTER JOIN user__field_institution
+						ON user__field_institution.entity_id = lc.user_id
 				WHERE issn.id = $id;
 				";
 				
@@ -208,16 +206,14 @@ class DBAdmin
 					issn.p_issn as p_issn,
 					issn.e_issn as e_issn,
 					issn.modified as modified,
-					institution.name as name,
+					user__field_institution.field_institution_value as name,
 					lc.lc as lc,
 					lc.user_id as user_id					
 				FROM lc
 				LEFT OUTER JOIN issn
 					ON issn.id = lc.issn_id
-					LEFT OUTER JOIN user_institution
-						ON user_institution.user_id = lc.user_id
-						LEFT OUTER JOIN institution
-						ON institution.id = user_institution.institution_id
+					LEFT OUTER JOIN user__field_institution
+						ON user__field_institution.entity_id = lc.user_id
 				WHERE issn.title LIKE '%$title%';
 				";
 				
@@ -255,16 +251,14 @@ class DBAdmin
 					issn.p_issn as p_issn,
 					issn.e_issn as e_issn,
 					issn.modified as modified,
-					institution.name as name,
+					user__field_institution.field_institution_value as name,
 					lc.lc as lc,
 					lc.user_id as user_id					
 				FROM lc
 				LEFT OUTER JOIN issn
 					ON issn.id = lc.issn_id
-					LEFT OUTER JOIN user_institution
-						ON user_institution.user_id = lc.user_id
-						LEFT OUTER JOIN institution
-						ON institution.id = user_institution.institution_id
+					LEFT OUTER JOIN user__field_institution
+						ON user__field_institution.entity_id = lc.user_id
 				WHERE issn.issn_l = '$issn'
 					OR issn.p_issn = '$issn'
 					OR issn.e_issn = '$issn'; 
@@ -309,14 +303,14 @@ class DBAdmin
 					issn.modified as modified,
 					institution.name as name,
 					lc.lc as lc,
+					user__field_institution.field_institution_value as name,
+					lc.lc as lc,
 					lc.user_id as user_id					
 				FROM lc
 				LEFT OUTER JOIN issn
 					ON issn.id = lc.issn_id
-					LEFT OUTER JOIN user_institution
-						ON user_institution.user_id = lc.user_id
-						LEFT OUTER JOIN institution
-						ON institution.id = user_institution.institution_id
+					LEFT OUTER JOIN user__field_institution
+						ON user__field_institution.entity_id = lc.user_id
 				WHERE lc.lc LIKE '$lc%';
 				";
 				
@@ -419,10 +413,8 @@ class DBAdmin
 	public function getInstitutionName($user_id) 
 	{
 		$database = \Drupal::database();	
-		$result = $database->query("SELECT name FROM {institution} 
-									LEFT OUTER JOIN user_institution
-										ON institution_id = institution.id
-										WHERE user_id = :id", [':id' => $user_id]);
+		$result = $database->query("SELECT field_institution_value as name FROM {user__field_institution} 
+									WHERE entity_id = :id", [':id' => $user_id]);
 		
 		$name = 0;
 		
