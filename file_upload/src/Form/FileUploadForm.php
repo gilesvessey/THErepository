@@ -469,7 +469,7 @@ class FileUploadForm extends FormBase {
 	// send an email message when done
 	$user = \Drupal::currentUser();
 	$to = $user->getEmail();
-	$from = "no-reply@issn.researchspaces.ca"; //this can be changed to a real address if desired
+	$from = "noreply@upei.ca"; //this can be changed to a real address if desired
 	$subject = "ISSN Upload Report";
 	$body = "Your file has been processed. Your report is available <a href='http://www.issn.researchspaces.ca/".$fileLocation . $fileName."'>HERE</a>.";
 	simple_mail_send($from, $to, $subject, $body);
