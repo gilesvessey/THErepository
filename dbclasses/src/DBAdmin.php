@@ -81,51 +81,49 @@ class DBAdmin
 			
 			//If all ISSNs are not in database, insert a new value
 			if($existingISSN_l == null && $existingISSN_p == null && $existingISSN_e == null) {		
-				$temp = this->insertISSN($l_issn, $p_issn, $e_issn, $title);
+				$temp = $this->insertISSN($l_issn, $p_issn, $e_issn, $title);
 				$issn_id = $temp[0]; //Get the issn id of the new entry
 			}
 			//If not, let's check that all of the existing ones we found are equal - compare l, p, e, if they're not null
-			else if((($existingISSN_l == $existingISSN_p) || ($existingISSN_p == null)) && (($existingISSN_l == $existingISSN_e) || $existingISSN_e == null) || ($existingISSN_l == null)) {
-				if(((($existingISSN_p == $existingISSN_e) || ($existingISSN_e == null)) || ($existingISSN_p == null)) {
-					//Let's find the existing one
-					if($existingISSN_p != null)
-						$issn_id = $existingISSN_p;
-					else if($existingISSN_e != null)
-						$issn_id = $existingISSN_e;
-					else if($existingISSN_l != null)
-						$issn_id = $existingISSN_l;
+			else if((((($existingISSN_l == $existingISSN_p) || ($existingISSN_p == null)) && (($existingISSN_l == $existingISSN_e) || $existingISSN_e == null)) || ($existingISSN_l == null)) && ((($existingISSN_p == $existingISSN_e) || ($existingISSN_e == null)) || ($existingISSN_p == null))) {
+				//Let's find the existing one
+				if($existingISSN_p != null)
+					$issn_id = $existingISSN_p;
+				else if($existingISSN_e != null)
+					$issn_id = $existingISSN_e;
+				else if($existingISSN_l != null)
+					$issn_id = $existingISSN_l;
 					
-					//Get the entry on this id
-					$entry = this->selectISSNById($issn_id);
+				//Get the entry on this id
+				$entry = $this->selectISSNById($issn_id);
 					
-					//Get any existing values, so we don't replace them with nulls
-					if($entry[1] != null) {
-						$l_issn = $entry[1];
-					}
-					if($entry[2] != null) {
-						$p_issn = $entry[2];
-					}
-					if($entry[3] != null) {
-						$e_issn = $entry[3];
-					}
-					
-					//Edit the entry on the id that we found
-					this->editISSN($issn_id, $l_issn, $p_issn, $e_issn, $title);
+				//Get any existing values, so we don't replace them with nulls
+				if($entry[1] != null) {
+					$l_issn = $entry[1];
 				}
+				if($entry[2] != null) {
+					$p_issn = $entry[2];
+				}
+				if($entry[3] != null) {
+					$e_issn = $entry[3];
+				}
+					
+				//Edit the entry on the id that we found
+				$this->editISSN($issn_id, $l_issn, $p_issn, $e_issn, $title, 0);
 			}
 			//Some ISSNs do exist, but must be from different entries
 			//If the types are not conflicting, we can combine them
 			else {
-				$entryL = this->selectISSNById($existingISSN_l);
-				$entryP = this->selectISSNById($existingISSN_p);
-				$entryE = this->selectISSNById($existingISSN_e);
+				$entryL = $this->selectISSNById($existingISSN_l);
+				$entryP = $this->selectISSNById($existingISSN_p);
+				$entryE = $this->selectISSNById($existingISSN_e);
 				
 				$issnConflict = 0;
 				
 				//If l and p have different entries, lets compare values
 				if(($existingISSN_l != null) && ($existingISSN_p != null) && (existingISSN_l != existingISSN_p)) {
 					for($i = 1; $i <= 3; $i++) {
-						if($entryL[$i] != null && (($entryL[$i] != $entryP[$i]) && ($entryP[$i] != null))) {
+						if(($entryL[$i] != null) && ($entryL[$i] != $entryP[$i]) && ($entryP[$i] != null)) {
 							$issnConflict = 1;
 						}
 					}
@@ -133,15 +131,15 @@ class DBAdmin
 				//If l an e have different entries, lets compare values 
 				if(($existingISSN_l != null) && ($existingISSN_e != null) && (existingISSN_l != existingISSN_e)) {
 					for($i = 1; $i <= 3; $i++) {
-						if($entryL[$i] != null && (($entryL[$i] != $entryE[$i]) && ($entryE[$i] != null))) {
+						if(($entryL[$i] != null) && ($entryL[$i] != $entryE[$i]) && ($entryE[$i] != null)) {
 							$issnConflict = 1;
 						}
 					}
 				}
 				//If p an e have different entries, lets compare values 
-				if(($existingISSN_p != null) && ($existingISSN_e != null) && (existingISSN_p != existingISSN_e)) {
+				if(($existingISSN_p != null) && ($existingISSN_e != null) && ($existingISSN_p != $existingISSN_e)) {
 					for($i = 1; $i <= 3; $i++) {
-						if($entryP[$i] != null && (($entryP[$i] != $entryE[$i]) && ($entryE[$i] != null))) {
+						if(($entryP[$i] != null) && ($entryP[$i] != $entryE[$i]) && ($entryE[$i] != null)) {
 							$issnConflict = 1;
 						}
 					}
@@ -149,27 +147,42 @@ class DBAdmin
 				
 				//If there were no conflicts found we can combine the entries
 				if($issnConflict == 0) {
-					//First we'll create a new entry with our data
-					$issn_id = this->insertISSN($l_issn, $p_issn, $e_issn, $title);
+					//Let's get an existing entry id
+					if($existingISSN_p != null)
+						$issn_id = $existingISSN_p;
+					else if($existingISSN_e != null)
+						$issn_id = $existingISSN_e;
+					else if($existingISSN_l != null)
+						$issn_id = $existingISSN_l;
+
+					//Now we'll edit this entry
+					$this->editISSN($issn_id, $l_issn, $p_issn, $e_issn, $title, 0);
 					
 					//Now we need to assign this new ID to all LC entries that were using the old ones
-					if($existingISSN_l != null) {
-						$recordsL = this->selectLCByISSNId($existingISSN_l);
+					//And then delete the other issn entries
+					if(($existingISSN_l != null) && ($existingISSN_l != $issn_id)) {
+						$recordsL = $this->selectLCByISSNId($existingISSN_l);
 						foreach($recordsL as $record){
-							this->editLC($record->id, $record->lc, $issn_id);
+							$this->editLC($record->id, $record->callnumber, $issn_id);
 						}
+						
+						$this->deleteISSN($existingISSN_l);
 					}
-					if($existingISSN_p != null) {
-						$recordsP = this->selectLCByISSNId($existingISSN_p);
+					if(($existingISSN_p != null) && ($existingISSN_p != $issn_id)) {
+						$recordsP = $this->selectLCByISSNId($existingISSN_p);
 						foreach($recordsP as $record){
-							this->editLC($record->id, $record->lc, $issn_id);
+							$this->editLC($record->id, $record->callnumber, $issn_id);
 						}
+						
+						$this->deleteISSN($existingISSN_p);
 					}
-					if($existingISSN_e != null) {
-						$recordsE = this->selectLCByISSNId($existingISSN_e);
+					if(($existingISSN_e != null) && ($existingISSN_e != $issn_id)) {
+						$recordsE = $this->selectLCByISSNId($existingISSN_e);
 						foreach($recordsE as $record){
-							this->editLC($record->id, $record->lc, $issn_id);
+							$this->editLC($record->id, $record->callnumber, $issn_id);
 						}
+						
+						$this->deleteISSN($existingISSN_e);
 					}
 				}
 				//If there were conflicts found, we end and return the error
@@ -716,7 +729,10 @@ class DBAdmin
 	//Outputs an array of two values
 	//On success - the id of the new value, and an empty array
 	//On failure - a 0, and an array of reasons for failure
-	public function editISSN($id, $l_issn, $p_issn, $e_issn, $title) {
+	//If you want duplicate ISSNs to not be allowed, set $check to 1, otherwise set to 0
+	public function editISSN($id, $l_issn, $p_issn, $e_issn, $title, $check) {
+		$database = \Drupal::database();
+		
 		//First trim leading and trailing whitespace that may exist
 		$l_issn = trim($l_issn);
 		$p_issn = trim($p_issn);
@@ -755,23 +771,25 @@ class DBAdmin
 		$p_issn = strtoupper($p_issn);
 		$e_issn = strtoupper($e_issn);
 		
-		//Check database for existing entries for inputted issns, other than current one being edited
-		if($p_issn != null) {
-			$existingISSN_p = $this->getISSNIdByP($p_issn);
-			if($existingISSN_p != 0 && $existingISSN_p !=  $id) {
-				array_push($errors, 'P-ISSN exists in another entry');
+		if($check == 1) {
+			//Check database for existing entries for inputted issns, other than current one being edited
+			if($p_issn != null) {
+				$existingISSN_p = $this->getISSNIdByP($p_issn);
+				if($existingISSN_p != 0 && $existingISSN_p !=  $id) {
+					array_push($errors, 'P-ISSN exists in another entry');
+				}
 			}
-		}
-		if($e_issn != null) {
-			$existingISSN_e = $this->getISSNIdByE($e_issn);
-			if($existingISSN_p != 0 && $existingISSN_e !=  $id) {
-				array_push($errors, 'E-ISSN exists in another entry');
+			if($e_issn != null) {
+				$existingISSN_e = $this->getISSNIdByE($e_issn);
+				if($existingISSN_e != 0 && $existingISSN_e !=  $id) {
+					array_push($errors, 'E-ISSN exists in another entry');
+				}
 			}
-		}
-		if($l_issn != null) {
-			$existingISSN_l = $this->getISSNIdByL($l_issn);
-			if($existingISSN_p != 0 && $existingISSN_l !=  $id) {
-				array_push($errors, 'L-ISSN exists in another entry');
+			if($l_issn != null) {
+				$existingISSN_l = $this->getISSNIdByL($l_issn);
+				if($existingISSN_l != 0 && $existingISSN_l !=  $id) {
+					array_push($errors, 'L-ISSN exists in another entry');
+				}
 			}
 		}
 		
@@ -858,8 +876,8 @@ class DBAdmin
 		return $id;
 	}
 	
-	//Selects all entry from the issn table which has the entered id
-	//Returns an array of arrays of entries containing id, title, l_issn, p_issn, e_issn
+	//Selects the entry from the issn table which has the entered id
+	//Returns an array containing id, l_issn, p_issn, e_issn, title
 	public function selectISSNById($id) {
 		$database = \Drupal::database();
 		$sql = "SELECT 
@@ -867,29 +885,21 @@ class DBAdmin
 					issn.title as title,
 					issn.issn_l as l_issn,
 					issn.p_issn as p_issn,
-					issn.e_issn as e_issn,				
+					issn.e_issn as e_issn			
 				FROM issn
-				WHERE issn.id = $id;
+				WHERE issn.id = '$id';
 				";
 				
 		$result = db_query($sql);
 		
-		$recordSet = array();
-		$setIndex = 0;
+		$output = null;
 		
 		foreach($result as $record)
 		{
-			$id = $record->id;
-			$title = $record->title;
-			$l_issn = $record->l_issn;
-			$p_issn = $record->p_issn;
-			$e_issn = $record->e_issn;
-			
-			$recordSet[$setIndex]  = [$id, $l_issn, $p_issn, $e_issn, $title];
-			$setIndex++;
+			$output = [$record->id, $record->l_issn, $record->p_issn, $record->e_issn, $record->title];
 		}
 		
-		return $recordSet;
+		return $output;
 	}
 	
 	//Selects all entries from the issn table that contain supplied issn
