@@ -1,0 +1,5 @@
+name: ISSN Table
+description: Table that contains the equivalency between the different types of ISSNs.
+type: module
+core: 8.x
+package: Custom

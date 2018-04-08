@@ -1,0 +1,7 @@
+issn_table.form:
+  path: '/issn_table'
+  defaults:
+    _title: 'ISSN Table'
+    _form: '\Drupal\issn_table\Form\IssnTableForm'
+  requirements:
+    _permission: 'issn_table access_content_perm'
