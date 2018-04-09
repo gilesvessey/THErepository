@@ -451,7 +451,7 @@ class FileUploadForm extends FormBase {
   }
   public function downloadForm(array &$form, FormStateInterface $form_state) {
 	$fileLocation = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
-	$fileName = "Invalids". uniqid() .".txt";
+	$fileName = "Invalids". uniqid() .".txt"; //random file names to avoid conflicts
 	$file = fopen($fileLocation . $fileName, "w");
 	fwrite($file, "Line#,p_issn,e_issn,l_issn,lc,title,Reason(s)\n"); //write header to file
 	foreach($form_state->get('tabledata') as $row) {
@@ -471,7 +471,7 @@ class FileUploadForm extends FormBase {
 	$to = $user->getEmail();
 	$from = "noreply@upei.ca"; //this can be changed to a real address if desired
 	$subject = "ISSN Upload Report";
-	$body = "Your file has been processed. Your report is available <a href='http://issn.researchspaces.ca/".$fileLocation . $fileName."'>HERE</a>.";
+	$body = "Your file has been processed. Your report is available <a href='http://issn.researchspaces.ca/".$fileLocation . $fileName."'>HERE</a>. It will be available for one hour.";
 	simple_mail_send($from, $to, $subject, $body);
 		
 	exit;
