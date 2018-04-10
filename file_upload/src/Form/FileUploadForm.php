@@ -159,7 +159,8 @@ class FileUploadForm extends FormBase {
 	
 	
   public function validateForm(array &$form, FormStateInterface $form_state) {
-	$this->fileName = "Invalids". uniqid() .".txt"; //generate a random name on submit, this MUST happen at validation time for proper timing of naming
+	$userID = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id()); //get the current user's info
+	$this->fileName = "Invalids". $userID->get('uid')->value .".txt"; //generate a random name on submit
   }
 	
   public function submitForm(array &$form, FormStateInterface $form_state) {
@@ -449,10 +450,8 @@ class FileUploadForm extends FormBase {
 		$form_state->set('submitted', 1); //Form has been submitted
 		$form_state->setRebuild(); //Update the form elements
 	}
-	
-	return $form;
-  }
-  public function downloadForm(array &$form, FormStateInterface $form_state) {
+	  
+	//create the file	  
 	$file = fopen($this->fileLocation . $this->fileName, "w");
 	fwrite($file, "Line#,p_issn,e_issn,l_issn,lc,title,Reason(s)\n"); //write header to file
 	foreach($form_state->get('tabledata') as $row) {
@@ -461,12 +460,6 @@ class FileUploadForm extends FormBase {
 	}
 	fclose($file);
 	
-	//Serve the file to the user
-	header('Content-Description: File Transfer');
-        header('Content-Type: application/octet-stream');
-	header('Content-Disposition: attachment; filename="'.$this->fileName.'"');
-	readfile($this->fileLocation . $this->fileName);
-	
 	// send an email message when done
 	$user = \Drupal::currentUser();
 	$to = $user->getEmail();
@@ -474,6 +467,16 @@ class FileUploadForm extends FormBase {
 	$subject = "ISSN Upload Report";
 	$body = "Your file has been processed. Your report is available <a href='http://issn.researchspaces.ca/".$this->fileLocation . $this->fileName."'> HERE.</a>.";
 	simple_mail_send($from, $to, $subject, $body);
+	
+	return $form;
+  }
+  public function downloadForm(array &$form, FormStateInterface $form_state) {
+	
+	//Serve the file to the user
+	header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+	header('Content-Disposition: attachment; filename="'.$this->fileName.'"');
+	readfile($this->fileLocation . $this->fileName);
 		
 	exit;
   }
