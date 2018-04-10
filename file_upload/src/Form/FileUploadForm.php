@@ -7,6 +7,9 @@ use Drupal\dbclasses\DBRecord;
 use Drupal\Core\File\File;
 class FileUploadForm extends FormBase {
 	
+  private $fileLocation = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
+  private $fileName = "";	
+	
   public function buildForm(array $form, FormStateInterface $form_state) {
 	
 	//Message about uploading
@@ -156,8 +159,8 @@ class FileUploadForm extends FormBase {
 	
 	
   public function validateForm(array &$form, FormStateInterface $form_state) {
-	
-	}
+	$this->fileName = "Invalids". uniqid() .".txt"; //generate a random name on submit, this MUST happen at validation time for proper timing of naming
+  }
 	
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // Handle submitted values in $form_state here.
@@ -450,9 +453,7 @@ class FileUploadForm extends FormBase {
 	return $form;
   }
   public function downloadForm(array &$form, FormStateInterface $form_state) {
-	$fileLocation = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
-	$fileName = "Invalids". uniqid() .".txt"; //random file names to avoid conflicts
-	$file = fopen($fileLocation . $fileName, "w");
+	$file = fopen($this->fileLocation . $this->fileName, "w");
 	fwrite($file, "Line#,p_issn,e_issn,l_issn,lc,title,Reason(s)\n"); //write header to file
 	foreach($form_state->get('tabledata') as $row) {
         $printOut = "$row[0],$row[1],$row[2],$row[3],$row[4],$row[5],$row[6]\n"; //write each invalid line
@@ -462,16 +463,16 @@ class FileUploadForm extends FormBase {
 	
 	//Serve the file to the user
 	header('Content-Description: File Transfer');
-    header('Content-Type: application/octet-stream');
-	header('Content-Disposition: attachment; filename="'.$fileName.'"');
-	readfile($fileLocation . $fileName);
+        header('Content-Type: application/octet-stream');
+	header('Content-Disposition: attachment; filename="'.$this->fileName.'"');
+	readfile($this->fileLocation . $this->fileName);
 	
 	// send an email message when done
 	$user = \Drupal::currentUser();
 	$to = $user->getEmail();
 	$from = "noreply@upei.ca"; //this can be changed to a real address if desired
 	$subject = "ISSN Upload Report";
-	$body = "Your file has been processed. Your report is available <a href='http://issn.researchspaces.ca/".$fileLocation . $fileName."'>HERE</a>. It will be available for six hours.";
+	$body = "Your file has been processed. Your report is available <a href='http://issn.researchspaces.ca/".$this->fileLocation . $this->fileName."'> HERE.</a>.";
 	simple_mail_send($from, $to, $subject, $body);
 		
 	exit;
