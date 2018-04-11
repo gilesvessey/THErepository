@@ -1,11 +1,16 @@
 <?php
 namespace Drupal\dbclasses;
 class DBAdmin
-{	
+{
+	/*
+	* Method Header 	: Errors[] insert(string title, string l_issn, string p_issn, string e_issn, string lc);
+	*	Arguments	: int $id = the id of some ISSN record
+	*	Returns		: Returns 0 if errors and an array of length X where X = number of errors.
+	*/
+	public function insert($title, $l_issn, $p_issn, $e_issn, $lc) {
 	//Checks input data and inserts an entry into the database
 	//Returns issn id and an empty array on successful upload
 	//Returns 0 and an array of strings containing error messages on unsuccessful upload
-	public function insert($title, $l_issn, $p_issn, $e_issn, $lc) {
 		$database = \Drupal::database();
 		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
 		
@@ -208,18 +213,30 @@ class DBAdmin
 		}
 	}
 	
-	//Edits an LC entry
-	//Used in the insert method when combining ISSN entries
-	//Doesn't contain any cleaning/validation since that is already done in the insert method!
-	//Be careful not to use this in other places if you don't verify the information
-	//Accepts an id for lc entry, an lc number, and an issn id
-	//Returns the id for the entry
-	public function editLC($id, $lc, $issn_id) {
+	/*
+	* Method Header 	: int editLC(int id, string lc, int issn_id);
+	*	Arguments	: id = the ID of the LC to be edited
+	*			  lc = the new LC data that will replace the current LC data found at the provided ID
+	*			  issn_id = the ISSN record to which this LC record refers to
+	*	Returns		: the ID of the recently edited LC.
+	*/
+	public function editLC($id, $lc, $issn_id) {	
+		//Edits an LC entry
+		//Used in the insert method when combining ISSN entries
+		//Doesn't contain any cleaning/validation since that is already done in the insert method!
+		//Be careful not to use this in other places if you don't verify the information
+		//Accepts an id for lc entry, an lc number, and an issn id
+		//Returns the id for the entry
 		$database = \Drupal::database();
 		$database->query("UPDATE {lc} SET lc = :lc, issn_id = :issn_id WHERE id = :id", [':id' => $id, ':lc' => $lc, ':issn_id' => $issn_id]);
 		return $id;
 	}
 	
+	/*
+	* Method Header 	: DBRecord[] selectByID(int id);
+	*	Arguments	: id = the id of some ISSN record
+	*	Returns		: an array of DBRecords, generally of length 1 if a record is found, of length 0 if not found.
+	*/
 	public function selectById($id)
 	{
 		$database = \Drupal::database();
@@ -264,7 +281,12 @@ class DBAdmin
 		
 		return $recordSet;
 	}
-	
+
+	/*
+	* Method Header 	: DBRecord[] selectAll();
+	*	Arguments	: void
+	*	Returns		: an array of DBRecords of length X, where X = # of ISSN records in database
+	*/
 	public function selectAll()
 	{
 		$database = \Drupal::database();
@@ -301,6 +323,11 @@ class DBAdmin
 		return $recordSet;
 	}
 	
+	/*
+	* Method Header 	: DBRecord[] selectByTitle(string title);
+	*	Arguments	: title = the public title of some work
+	*	Returns		: an array of DBRecords. Its possible that multiple works/records have the same title
+	*/
 	public function selectByTitle($title)
 	{
 		$database = \Drupal::database();
@@ -346,6 +373,11 @@ class DBAdmin
 		return $recordSet;
 	}
 	
+	/*
+	* Method Header 	: DBRecord[] selectByISSN(string issn);
+	*	Arguments	: issn = the issn of some work/record. This ISSN will be matched against l,p, and e ISSNs.
+	*	Returns		: an array of DBRecords, while not common, its technically possible that multiple works share an ISSN.
+	*/
 	public function selectByISSN($issn) //matches any ISSN type
 	{
 		$database = \Drupal::database();
@@ -390,15 +422,14 @@ class DBAdmin
 			$setIndex++;
 		}
 		
-		//if(empty($recordSet))
-			//$recordSet = null;
-		
 		return $recordSet;
 	}
-	
-	//Selects all LC entries with the entered issn_id
-	//Accepts an issn id
-	//Returns all entries as an array of DBRecord objects
+
+	/*
+	* Method Header 	: DBRecord[] selectLCByISSNId(string issn_id);
+	*	Arguments	: issn_id = the id of some ISSN record
+	*	Returns		: an array of DBRecords.
+	*/
 	public function selectLCByISSNId($issn_id) {
 		$database = \Drupal::database();
 		$sql = "SELECT 
@@ -443,6 +474,12 @@ class DBAdmin
 		return $recordSet;
 	}
 	
+
+	/*
+	* Method Header 	: DBRecord[] selectByLC(string lc);
+	*	Arguments	: lc = the public (not a database ID) LC
+	*	Returns		: an array of DBRecords. Returns all records that match the provided LC
+	*/
 	public function selectByLC($lc)
 	{
 		$database = \Drupal::database();
@@ -487,8 +524,13 @@ class DBAdmin
 		
 		return $recordSet;
 	}
-	
-    public function recordCount()
+
+	/*
+	* Method Header 	: int recordCount();
+	*	Arguments	: 
+	*	Returns		: an integer whose value is equal to the number of rows in the ISSN table.
+	*/
+    	public function recordCount()
    	{
 		$database = \Drupal::database();
 		$result = $database->query("SELECT COUNT(*) AS numrows FROM issn");
@@ -498,8 +540,13 @@ class DBAdmin
 			$numrows = $record->numrows;
 		}
 		return $numrows;
-    }
-	
+    	}
+
+	/*
+	* Method Header 	: string delectLCById(int id);
+	*	Arguments	: id = the id of the LC to be removed from the database
+	*	Returns		: a string that confirms the LC record has been removed from the database.
+	*/
 	public function deleteLCById($id)
 	{
 		$database = \Drupal::database();	
@@ -511,10 +558,16 @@ class DBAdmin
 	/*
 		For institution database table
 	*/
-	
-	//Insert a new institution, contains the associated email extension and name
+
+	/*
+	* Method Header 	: int insertInstitution(string extension, string name);
+	*	Arguments	: extension = the "domain" of an institution, ex: UPEI.ca is the domain for University of PEI
+	*			  name = the public name of the institution, ex: "University of Prince Edward Island"
+	*	Returns		: an int that is = to the the new institution's ID # in the database.
+	*/
 	public function insertInstitution($extension, $name)
 	{
+		//Insert a new institution, contains the associated email extension and name
 		$database = \Drupal::database();	
 		$database->insert('institution');
 			$fields = [
@@ -527,11 +580,15 @@ class DBAdmin
 				
 			return $institution_id;
 	}
-	
-	//Get the name of an institution from an email extension
-	//Returns 0 on no result
+
+	/*
+	* Method Header 	: string selectByExtension(string extension);
+	*	Arguments	: extension = the "domain" of an institution, ex: UPEI.ca is the domain for University of PEI
+	*	Returns		: returns a string that is an institution's name. Returns a 0 if no record is found.
+	*/	
 	public function selectByExtension($extension) 
 	{
+		//Get the name of an institution from an email extension
 		$database = \Drupal::database();	
 		$result = $database->query("SELECT name FROM {institution} WHERE domain = :extension", [':extension' => $extension]);
 		
@@ -544,7 +601,12 @@ class DBAdmin
 			
 		return $name;
 	}
-	
+
+	/*
+	* Method Header 	: int getInstitutionID(string name);
+	*	Arguments	: name = the "domain" of an institution, ex: UPEI.ca is the domain for University of PEI
+	*	Returns		: returns the ID of the institution who's name matches the supplied argument.
+	*/
 	public function getInstitutionID($name) 
 	{
 		$database = \Drupal::database();	
@@ -559,7 +621,12 @@ class DBAdmin
 			
 		return $id;
 	}
-	
+
+	/*
+	* Method Header 	: string getInstitutionName(int user_id);
+	*	Arguments	: user_id = the id of a user
+	*	Returns		: returns the name of the institution with which the user is affiliated
+	*/
 	public function getInstitutionName($user_id) 
 	{
 		$database = \Drupal::database();	
@@ -577,7 +644,10 @@ class DBAdmin
 	}
 	
 	/*
-		For user_institution table
+	* Method Header 	: int insertUser(int user, int institution);
+	*	Arguments	: user = the ID of the user
+	*			  institution = the ID of the institution, creates a connection between a user and an institution
+	*	Returns		: returns the ID of the newly inserted record.
 	*/
 	public function insertUser($user, $institution) {
 		$database = \Drupal::database();	
@@ -625,7 +695,7 @@ class DBAdmin
 		
 		return $output;
 
-    }
+    	}
 	
 	/*
 		For ISSN Table
@@ -969,9 +1039,7 @@ class DBAdmin
 		}
 		
 		return $recordSet;
-	}
-	
-	
+	}	
 	
 	//*Note* Possibly now unused
 	//Returns id for issn if it exists
