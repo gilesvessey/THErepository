@@ -911,7 +911,7 @@ class DBAdmin
 					issn.title as title,
 					issn.issn_l as l_issn,
 					issn.p_issn as p_issn,
-					issn.e_issn as e_issn,				
+					issn.e_issn as e_issn				
 				FROM issn
 				WHERE issn.issn_l = '$issn'
 					OR issn.p_issn = '$issn'
@@ -947,7 +947,7 @@ class DBAdmin
 					issn.title as title,
 					issn.issn_l as l_issn,
 					issn.p_issn as p_issn,
-					issn.e_issn as e_issn,				
+					issn.e_issn as e_issn				
 				FROM issn
 				";
 				
