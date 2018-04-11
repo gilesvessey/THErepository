@@ -25,10 +25,7 @@ class FileUploadForm extends FormBase {
 	$form['info_link'] = [
 		'#type' => 'item',
 		'#markup' => "<a href='about_upload' target='_blank'>For more info about upload requirements, click here.</a>",
-	];  
-	
-	
-	  
+	];  	  
 	  
 	//After submission, if there were any invalid lines, print them to this table
 	if($form_state->get('submitted') == 1 && $form_state->get('lineError') == 1) {
@@ -113,8 +110,7 @@ class FileUploadForm extends FormBase {
 			'#upload_location' => 'public://uploads/',
 			'#upload_validators' => array('file_validate_extensions' => array('csv tsv')),
 			'#required' => true,
-		];
-		
+		];		
 			
 		$user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
 			
@@ -159,6 +155,9 @@ class FileUploadForm extends FormBase {
 	
 	
   public function validateForm(array &$form, FormStateInterface $form_state) {
+	//using userID in fileName forces each user to only ever have a most one uploaded file on the server at a time.
+	//also, needed file names to be more predictable than truly random names (for the purpose of sending email reports AND allowing reports
+	//to be displayable in the download() method.
 	$userID = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id()); //get the current user's info
 	$this->fileName = "Invalids". $userID->get('uid')->value .".txt"; //generate a random name on submit
   }
@@ -299,8 +298,7 @@ class FileUploadForm extends FormBase {
 			
 			$counter++; //Increment current header position
 		}
-	}	
-		
+	}		
 	
 	if($headersCorrect){ //Only read in data if the headers are correct
 	
@@ -473,6 +471,7 @@ class FileUploadForm extends FormBase {
   public function downloadForm(array &$form, FormStateInterface $form_state) {
 	
 	//Serve the file to the user
+	//Note the file is already created by this point
 	header('Content-Description: File Transfer');
         header('Content-Type: application/octet-stream');
 	header('Content-Disposition: attachment; filename="'.$this->fileName.'"');
