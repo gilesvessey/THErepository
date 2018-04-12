@@ -808,7 +808,7 @@ class DBAdmin
 	//On success - the id of the new value, and an empty array
 	//On failure - a 0, and an array of reasons for failure
 	//If you want duplicate ISSNs to not be allowed, set $check to 1, otherwise set to 0
-	public function editISSN($id, $l_issn, $p_issn, $e_issn, $title, $check) {
+	public function editISSN($id, $l_issn, $p_issn, $e_issn, $title, $check = 1) {
 		$database = \Drupal::database();
 
 		//First trim leading and trailing whitespace that may exist
