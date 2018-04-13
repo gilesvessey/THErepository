@@ -186,9 +186,11 @@ class DBAdmin
 
 			//Insert lc assignment
 			
+			$user_id = $user->get('uid')->value;
+			
 			//First check that this line doesn't already exist in the database for this user
-			$duplicateItem = $database->query("select * from lc where issn_id = :issn_id AND lc = :lc AND user_id = :user_id", [':issn_id' => $issn_id, ':lc' => $lc, ':user_id' => $user->get('uid')->value]);
-			if($duplicateItem != null) {
+			$duplicateItem = db_query("select * from {lc} where issn_id = '$issn_id' AND lc = '$lc' AND user_id = '$user_id';");
+			foreach($duplicateItem as $record) {
 				array_push($errors, 'Duplicate Line Found');
 				return [0, $errors];
 			}
@@ -197,7 +199,7 @@ class DBAdmin
 			$fields = [
 				'issn_id' => $issn_id,
 				'lc' => $lc,
-				'user_id' => $user->get('uid')->value,
+				'user_id' => $user_id,
 			];
 			$lc_id = $database->insert('lc')->fields($fields)->execute();
 
