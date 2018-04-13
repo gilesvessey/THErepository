@@ -43,7 +43,7 @@ class ResultsTable extends ConfigFormBase
             
             $fileName2 = "Download.tsv";
             $file2 = fopen($fileLocation . $fileName2, "w");
-            fwrite($file2, "Title\tLinking ISSN\tPrint ISSN\tElectronic ISSN\tLC call number\tSource\n"); // write header to file
+            fwrite($file2, "title\tl_issn\tp_issn\te_issn\tlc\tsource\n"); // write header to file
             foreach ($recordSet as $record) {
                 $printOut2 = "$record->title\t$record->issn_l\t$record->p_issn\t$record->e_issn\t$record->callnumber\t$record->source\t\n";
                 fwrite($file2, $printOut2);
@@ -489,7 +489,7 @@ class ResultsTable extends ConfigFormBase
             $form['quantity'] = [
                 '#type' => 'number',
                 '#title' => $this->t('# of Previewed Results:'),
-                '#default_value' => $this->t('50'),
+                '#default_value' => $this->t('100'),
                 '#min' => '1',
                 '#max' => '10000',
                 '#size' => '5'
