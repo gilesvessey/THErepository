@@ -142,12 +142,12 @@ class ISSNUploadForm extends FormBase {
 	if($fileHandle) //if no error
 	{		
 		while (!feof($fileHandle)) { //until end of file...
-			$record = fgets($fileHandle); //each line in the file is one record
+			$record = fgetcsv($fileHandle, 0, $delimiter); //each line in the file is one record
 			
 			if($isHeader) //first line of file is header...
 			{
 				$tempHeaders = [];
-				array_push($tempHeaders,explode("$delimiter",$record));
+				array_push($tempHeaders, $record);
 				$headers[0] = trim($tempHeaders[0][0]); //trim to make sure no trailing white space or line breaks
 				$headers[1] = trim($tempHeaders[0][1]);
 				$headers[2] = trim($tempHeaders[0][2]);
@@ -156,7 +156,7 @@ class ISSNUploadForm extends FormBase {
 			}
 			else
 			{
-				array_push($file,explode("$delimiter",$record)); //each record is itself an array of items (ISSN, title, etc)
+				array_push($file, $record); //each record is itself an array of items (ISSN, title, etc)
 			}
 		}
 		
@@ -247,21 +247,27 @@ class ISSNUploadForm extends FormBase {
 			
 			$reason = ""; //Holds reasons for error if there is one
 	
-					
-			$insert = $dbAdmin->insertISSN($l_issn, $p_issn, $e_issn, $title);
-			if($insert[0] == 0) { //If there are errors
-				foreach($insert[1] as $error) { //Add them to reason
-					$reason .= $error . ', ';
-				}
-				//Trim whitespace before uploading reason error line, helps with the output file
-				$l_issn = trim($l_issn);
-				$p_issn = trim($p_issn);
-				$e_issn = trim($e_issn);
-				$title = trim($title);
-				$reason = '"' . $reason . '"'; //Put the reason in quotes
-				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $title, $reason]);
+			if(count($line) != 4) {
+				$reason = "Wrong number of elements in line. (Check quoting)";
+				$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $lc, $title, $reason]);
 				$errorCount++;
-			}	
+			}
+			else {
+				$insert = $dbAdmin->insertISSN($l_issn, $p_issn, $e_issn, $title);
+				if($insert[0] == 0) { //If there are errors
+					foreach($insert[1] as $error) { //Add them to reason
+						$reason .= $error . ', ';
+					}
+					//Trim whitespace before uploading reason error line, helps with the output file
+					$l_issn = trim($l_issn);
+					$p_issn = trim($p_issn);
+					$e_issn = trim($e_issn);
+					$title = trim($title);
+					$reason = '"' . $reason . '"'; //Put the reason in quotes
+					$form_state->set(['tabledata', $lineCount], [$lineCount, $p_issn, $e_issn, $l_issn, $title, $reason]);
+					$errorCount++;
+				}
+			}
 			
 			
 		}

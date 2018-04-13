@@ -113,10 +113,6 @@ class SingleUploadForm extends FormBase {
 	$e_issn = $form_state->getValue('e_issn');
 	$lc = $form_state->getValue('lc');
 	
-	//If user didn't quote the title, add quotes
-	if(((substr($title, 0, 1) != '"') || (substr($title, -1, 1) != '"')) && $title != null)
-		$title = '"' . $title . '"';
-	
 	//Normal upload
 	if ($issnOption == 0) {
 		$insert = $dbAdmin->insert($title, $l_issn, $p_issn, $e_issn, $lc);

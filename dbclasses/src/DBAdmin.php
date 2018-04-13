@@ -24,8 +24,8 @@ class DBAdmin
 		$lc = trim($lc);
 
 		//Regular expressions for validating inputs
-		$regISSN = '/^"?[0-9]{4}-?[0-9]{3}([0-9]|(X|x))"?$/'; //Accepts an ISSN with or without a hyphen, can be in quotes or not
-		$regLC = '/^"?([a-zA-Z]{1,3})(([0-9]{0,4})|([0-9]{0,4}\.([0-9]{1,4})))(\.[a-zA-Z][0-9]{0,3}){0,2}"?$/'; //Strict LC, no extra stuff allowed at the end, can be in quotes or not
+		$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hyphen
+		$regLC = '/^([a-zA-Z]{1,3})(([0-9]{0,4})|([0-9]{0,4}\.([0-9]{1,4})))(\.[a-zA-Z][0-9]{0,3}){0,2}$/'; //Strict LC, no extra stuff allowed at the end
 
 		$errors = []; //Holds error messages
 		//Make sure one of p or e issn is present
@@ -50,19 +50,6 @@ class DBAdmin
 		$lc = str_replace(" ", "", $lc); //Remove all spaces from LC
 		if(preg_match($regLC, $lc) != 1)
 			array_push($errors, 'Invalid LC');
-		//Title, if not blank it must be quoted
-		if(((substr($title, 0, 1) != '"') || (substr($title, -1, 1) != '"')) && $title != null)
-			array_push($errors, 'Title Must Be Quoted');
-
-		//Trim quotations off issns and lc before upload
-		$l_issn = trim($l_issn, '"');
-		$p_issn = trim($p_issn, '"');
-		$e_issn = trim($e_issn, '"');
-		$lc = trim($lc, '"');
-
-		//Remove all quotes from title, and replace one set - this is in case there are many sets of quotes
-		$title = str_replace('"', "", $title);
-		$title = '"' . $title . '"';
 
 		//Make all characters in issns and lc uppercase
 		$l_issn = strtoupper($l_issn);
@@ -198,6 +185,14 @@ class DBAdmin
 			}
 
 			//Insert lc assignment
+			
+			//First check that this line doesn't already exist in the database for this user
+			$duplicateItem = $database->query("select * from lc where issn_id = :issn_id AND lc = :lc AND user_id = :user_id", [':issn_id' => $issn_id, ':lc' => $lc, ':user_id' => $user->get('uid')->value]);
+			if($duplicateItem != null) {
+				array_push($errors, 'Duplicate Line Found');
+				return [0, $errors];
+			}
+			
 			$database->insert('lc');
 			$fields = [
 				'issn_id' => $issn_id,
@@ -723,11 +718,7 @@ class DBAdmin
 		$e_issn = trim($e_issn);
 		$title = trim($title);
 
-		//Add quotes around title if they're not present
-		if(((substr($title, 0, 1) != '"') || (substr($title, -1, 1) != '"')) && $title != null)
-			$title = '"' . $title . '"';
-
-		$regISSN = '/^"?[0-9]{4}-?[0-9]{3}([0-9]|(X|x))"?$/'; //Accepts an ISSN with or without a hyphen, can be in quotes or not
+		$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hyphen
 
 		$errors = []; //Holds error messages
 
@@ -754,11 +745,6 @@ class DBAdmin
 		$l_issn = strtoupper($l_issn);
 		$p_issn = strtoupper($p_issn);
 		$e_issn = strtoupper($e_issn);
-		
-		//Remove quotes from issns
-		$l_issn = str_replace('"', "", $l_issn);
-		$p_issn = str_replace('"', "", $p_issn);
-		$e_issn = str_replace('"', "", $e_issn);
 
 		//Check database for existing entries for inputted issns
 		if($p_issn != null) {
@@ -822,11 +808,7 @@ class DBAdmin
 		$e_issn = trim($e_issn);
 		$title = trim($title);
 
-		//Add quotes around title if they're not present
-		if(((substr($title, 0, 1) != '"') || (substr($title, -1, 1) != '"')) && $title != null)
-			$title = '"' . $title . '"';
-
-		$regISSN = '/^"?[0-9]{4}-?[0-9]{3}([0-9]|(X|x))"?$/'; //Accepts an ISSN with or without a hyphen, can be in quotes or not
+		$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hyphen
 
 		$errors = []; //Holds error messages
 
@@ -853,11 +835,6 @@ class DBAdmin
 		$l_issn = strtoupper($l_issn);
 		$p_issn = strtoupper($p_issn);
 		$e_issn = strtoupper($e_issn);
-		
-		//Remove quotes from issns
-		$l_issn = str_replace('"', "", $l_issn);
-		$p_issn = str_replace('"', "", $p_issn);
-		$e_issn = str_replace('"', "", $e_issn);
 
 		if($check == 1) {
 			//Check database for existing entries for inputted issns, other than current one being edited
