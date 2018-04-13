@@ -1,0 +1,5 @@
+name: DB Classes
+description: Installs the classes used to perform database operations.
+type: module
+core: 8.x
+package: Custom

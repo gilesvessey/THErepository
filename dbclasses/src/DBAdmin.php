@@ -754,6 +754,11 @@ class DBAdmin
 		$l_issn = strtoupper($l_issn);
 		$p_issn = strtoupper($p_issn);
 		$e_issn = strtoupper($e_issn);
+		
+		//Remove quotes from issns
+		$l_issn = str_replace('"', "", $l_issn);
+		$p_issn = str_replace('"', "", $p_issn);
+		$e_issn = str_replace('"', "", $e_issn);
 
 		//Check database for existing entries for inputted issns
 		if($p_issn != null) {
@@ -764,13 +769,13 @@ class DBAdmin
 		}
 		if($e_issn != null) {
 			$existingISSN_e = $this->getISSNIdByE($e_issn);
-			if($existingISSN_p != 0) {
+			if($existingISSN_e != 0) {
 				array_push($errors, 'E-ISSN already exists');
 			}
 		}
 		if($l_issn != null) {
 			$existingISSN_l = $this->getISSNIdByL($l_issn);
-			if($existingISSN_p != 0) {
+			if($existingISSN_l != 0) {
 				array_push($errors, 'L-ISSN already exists');
 			}
 		}
@@ -848,6 +853,11 @@ class DBAdmin
 		$l_issn = strtoupper($l_issn);
 		$p_issn = strtoupper($p_issn);
 		$e_issn = strtoupper($e_issn);
+		
+		//Remove quotes from issns
+		$l_issn = str_replace('"', "", $l_issn);
+		$p_issn = str_replace('"', "", $p_issn);
+		$e_issn = str_replace('"', "", $e_issn);
 
 		if($check == 1) {
 			//Check database for existing entries for inputted issns, other than current one being edited
