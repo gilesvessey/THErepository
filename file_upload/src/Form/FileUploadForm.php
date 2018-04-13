@@ -159,7 +159,7 @@ class FileUploadForm extends FormBase {
 	//also, needed file names to be more predictable than truly random names (for the purpose of sending email reports AND allowing reports
 	//to be displayable in the download() method.
 	$userID = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id()); //get the current user's info
-	$this->fileName = "Invalids". $userID->get('uid')->value .".txt"; //generate a random name on submit
+	$this->fileName = "Invalids". $userID->get('uid')->value .".csv"; //generate a name on submit
   }
 	
   public function submitForm(array &$form, FormStateInterface $form_state) {

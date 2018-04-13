@@ -53,21 +53,20 @@ class ResultsTable extends ConfigFormBase
             $fileLocation3 = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
             $fileName3 = "Download.json";
             $file3 = fopen($fileLocation3 . $fileName3, "w");
-            fwrite($file3, "{\n\tResult page: ["); // write header to file
-            
+            fwrite($file3, "{\n\t\"Result page\": ["); // write header to file
+			$firstRow = TRUE;
+
             foreach ($recordSet as $record) {
-                $printOut3 = "\n\t\t{Title: $record->title, \n\t\tISSN: $record->issn_l, \n\t\tP_ISSN: $record->p_issn, \n\t\tE_ISSN: $record->e_issn, \n\t\tCALL NUMBER: $record->callnumber, \n\t\tSOURCE: $record->source},";
+				if(!$firstRow)
+					$printOut3 = ",";
+				
+                $printOut3 .= "\n\t\t{\n\t\t\t\"Title\": $record->title, \n\t\t\t\"ISSN\": \"$record->issn_l\", \n\t\t\t\"P_ISSN\": \"$record->p_issn\", \n\t\t\t\"E_ISSN\": \"$record->e_issn\", \n\t\t\t\"CALL NUMBER\": \"$record->callnumber\", \n\t\t\t\"SOURCE\": \"$record->source\"\n\t\t}";
                 fwrite($file3, $printOut3);
+				
+				$firstRow = FALSE;
             }
-            fwrite($file3, "\t]\n}");
-            fclose($file3);
-            
-            
-            
-            
-            
-            
-            
+            fwrite($file3, "\n\t]\n}");
+            fclose($file3);           
             
             $url1 = Url::fromUri('base:sites/default/files/downloads/Download.csv');
             $url2 = Url::fromUri('base:sites/default/files/downloads/Download.tsv');
