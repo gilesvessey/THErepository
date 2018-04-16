@@ -60,7 +60,7 @@ class ResultsTable extends ConfigFormBase
 				if(!$firstRow)
 					$printOut3 = ",";
 				
-                $printOut3 .= "\n\t\t{\n\t\t\t\"Title\": $record->title, \n\t\t\t\"ISSN\": \"$record->issn_l\", \n\t\t\t\"P_ISSN\": \"$record->p_issn\", \n\t\t\t\"E_ISSN\": \"$record->e_issn\", \n\t\t\t\"CALL NUMBER\": \"$record->callnumber\", \n\t\t\t\"SOURCE\": \"$record->source\"\n\t\t}";
+                $printOut3 .= "\n\t\t{\n\t\t\t\"Title\": \"$record->title\", \n\t\t\t\"ISSN\": \"$record->issn_l\", \n\t\t\t\"P_ISSN\": \"$record->p_issn\", \n\t\t\t\"E_ISSN\": \"$record->e_issn\", \n\t\t\t\"CALL NUMBER\": \"$record->callnumber\", \n\t\t\t\"SOURCE\": \"$record->source\"\n\t\t}";
                 fwrite($file3, $printOut3);
 				
 				$firstRow = FALSE;
@@ -103,7 +103,10 @@ class ResultsTable extends ConfigFormBase
                 '#type' => 'link',
                 '#url' => $url1,
                 '#prefix' => '<p><b>',
-                '#suffix' => '</b></p>'
+                '#suffix' => '</b></p>',
+		'#attributes' => [
+                    'target' => '_blank'
+                ]
             ];
             $form['download_tsv'] = [
                 
@@ -111,7 +114,10 @@ class ResultsTable extends ConfigFormBase
                 '#type' => 'link',
                 '#url' => $url2,
                 '#prefix' => '<p><b>',
-                '#suffix' => '</b></p>'
+                '#suffix' => '</b></p>',
+		'#attributes' => [
+                    'target' => '_blank'
+                ]
             ];
             $form['download_json'] = [
                 
@@ -119,7 +125,10 @@ class ResultsTable extends ConfigFormBase
                 '#type' => 'link',
                 '#url' => $url3,
                 '#prefix' => '<p><b>',
-                '#suffix' => '</b></p>'
+                '#suffix' => '</b></p>',
+		'#attributes' => [
+                    'target' => '_blank'
+                ]
             ];
             $tableclass = array();
             if ($form_state->getValue('editoroptions') === '1' || $form_state->getValue('editoroptions') === '2') {
