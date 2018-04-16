@@ -22,6 +22,9 @@ class DBAdmin
 		$p_issn = trim($p_issn);
 		$e_issn = trim($e_issn);
 		$lc = trim($lc);
+		
+		//Trim trailing period from lc if it exists
+		$lc = rtrim($lc, '.');
 
 		//Regular expressions for validating inputs
 		$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hyphen
