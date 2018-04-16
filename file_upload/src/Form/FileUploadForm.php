@@ -11,15 +11,6 @@ class FileUploadForm extends FormBase {
   private $fileName = "";	
 	
   public function buildForm(array $form, FormStateInterface $form_state) {
-	
-	//Message about uploading
-	$form['upload_message'] = [
-		'#type' => 'item',
-		'#description' => t("NOTE: Large files will take time to process.<br />
-							After submitting, leave this page open to receive your report.<br />
-							-OR-<br />
-							After submitting, you may close this page, or <a href='https://issn.researchspaces.ca/'>Click HERE</a> to leave this page (your information will still be processed.)"),
-	];  
 	  
 	//Link to info page. Opens in a new window/tab
 	$form['info_link'] = [
@@ -160,6 +151,11 @@ class FileUploadForm extends FormBase {
 	//to be displayable in the download() method.
 	$userID = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id()); //get the current user's info
 	$this->fileName = "Invalids". $userID->get('uid')->value .".csv"; //generate a name on submit
+	  
+	drupal_set_message(t("NOTE: Large files will take time to process.<br />
+							ONCE you submit your file, you may close this page.<br />
+							You will be emailed a report when your information is processed.<br />
+							Your report will be saved until your next upload."));
   }
 	
   public function submitForm(array &$form, FormStateInterface $form_state) {
