@@ -50,7 +50,7 @@ class DBAdmin
 		else if((strpos($e_issn, '-') == false) && $e_issn != null) //Add hyphen if missing
 			$e_issn = substr($e_issn, 0, 4) . '-' . substr($e_issn, -4, 4);
 		//LC, match regex, cannot be blank
-		$lc = str_replace(" ", "", $lc); //Remove all spaces from LC
+		$lc = str_replace(" ", ".", $lc); //Change spaces to periods within the lc
 		if(preg_match($regLC, $lc) != 1)
 			array_push($errors, 'Invalid LC');
 
