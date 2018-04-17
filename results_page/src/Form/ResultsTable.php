@@ -13,7 +13,7 @@ use Drupal\dbclasses\DBRecord;
 
 class ResultsTable extends ConfigFormBase
 {
-    
+
     /**
      * This method puts the form together (defines fields).
      */
@@ -54,19 +54,19 @@ class ResultsTable extends ConfigFormBase
             $fileName3 = "Download.json";
             $file3 = fopen($fileLocation3 . $fileName3, "w");
             fwrite($file3, "{\n\t\"Result page\": ["); // write header to file
-			$firstRow = TRUE;
-
+            $firstRow = TRUE;
+            
             foreach ($recordSet as $record) {
-				if(!$firstRow)
-					$printOut3 = ",";
-				
-                $printOut3 .= "\n\t\t{\n\t\t\t\"Title\": \"$record->title\", \n\t\t\t\"ISSN\": \"$record->issn_l\", \n\t\t\t\"P_ISSN\": \"$record->p_issn\", \n\t\t\t\"E_ISSN\": \"$record->e_issn\", \n\t\t\t\"CALL NUMBER\": \"$record->callnumber\", \n\t\t\t\"SOURCE\": \"$record->source\"\n\t\t}";
+                if (! $firstRow)
+                    $printOut3 = ",";
+                
+                $printOut3 .= "\n\t\t{\n\t\t\t\"Title\": $record->title, \n\t\t\t\"ISSN\": \"$record->issn_l\", \n\t\t\t\"P_ISSN\": \"$record->p_issn\", \n\t\t\t\"E_ISSN\": \"$record->e_issn\", \n\t\t\t\"CALL NUMBER\": \"$record->callnumber\", \n\t\t\t\"SOURCE\": \"$record->source\"\n\t\t}";
                 fwrite($file3, $printOut3);
-				
-				$firstRow = FALSE;
+                
+                $firstRow = FALSE;
             }
             fwrite($file3, "\n\t]\n}");
-            fclose($file3);           
+            fclose($file3);
             
             $url1 = Url::fromUri('base:sites/default/files/downloads/Download.csv');
             $url2 = Url::fromUri('base:sites/default/files/downloads/Download.tsv');
@@ -103,10 +103,7 @@ class ResultsTable extends ConfigFormBase
                 '#type' => 'link',
                 '#url' => $url1,
                 '#prefix' => '<p><b>',
-                '#suffix' => '</b></p>',
-		'#attributes' => [
-                    'target' => '_blank'
-                ]
+                '#suffix' => '</b></p>'
             ];
             $form['download_tsv'] = [
                 
@@ -114,10 +111,7 @@ class ResultsTable extends ConfigFormBase
                 '#type' => 'link',
                 '#url' => $url2,
                 '#prefix' => '<p><b>',
-                '#suffix' => '</b></p>',
-		'#attributes' => [
-                    'target' => '_blank'
-                ]
+                '#suffix' => '</b></p>'
             ];
             $form['download_json'] = [
                 
@@ -125,16 +119,31 @@ class ResultsTable extends ConfigFormBase
                 '#type' => 'link',
                 '#url' => $url3,
                 '#prefix' => '<p><b>',
-                '#suffix' => '</b></p>',
-		'#attributes' => [
-                    'target' => '_blank'
-                ]
+                '#suffix' => '</b></p>'
             ];
             $tableclass = array();
             if ($form_state->getValue('editoroptions') === '1' || $form_state->getValue('editoroptions') === '2') {
                 $tableclass = [
                     'input-table2'
                 ]; // Puts the table more over to the left as it's wider, this gets picked up in tables.css
+                $form['modifyoptions'] = [
+                    '#type' => 'select',
+                    '#options' => [
+                        'Edit selected entries',
+                        'Delete selected entries'
+                    ],
+                    '#attributes' => [
+                        'class' => [
+                            'modifyoptions'
+                        ]
+                    ],
+                    '#prefix' => '<div class="container-inline">'
+                ];
+                $form['editbutton'] = [
+                    '#type' => 'submit',
+                    '#value' => $this->t('Submit Changes'),
+                    '#suffix' => '</div>'
+                ];
             } else {
                 $tableclass = [
                     'input-table1'
@@ -159,141 +168,38 @@ class ResultsTable extends ConfigFormBase
                     
                     if ($counter >= $form_state->get('resultsshown')) // This is what stops the page from displaying more than your requested num of results
                         break;
-                        
-                        $form['table'][$counter]['Edit'] = [ // Edit checkbox
-                            '#type' => 'checkbox',
-                            '#default_value' => FALSE
-                        ];
-                        $title = str_replace("\"", '', $record->title);
-                        $form['table'][$counter]['Title'] = array(
-                            '#type' => 'item',
-                            '#value' => $title,
-                            '#description' => $title,
-                            '#size' => 13
-                            
-                        );
-                        
-                        $form['table'][$counter]['Linking ISSN'] = [
-                            '#type' => 'container'
-                        ];
-                        if (! $record->issn_l) {
-                            $form['table'][$counter]['Linking ISSN']['editable'] = array(
-                                '#type' => 'textfield',
-                                '#default_value' => $record->issn_l,
-                                '#size' => 8,
-                                '#states' => array(
-                                    'visible' => array(
-                                        ':input[name="table[' . $counter . '][Edit]"]' => array(
-                                            'checked' => TRUE
-                                        )
-                                    )
-                                )
-                            );
-                            $form['table'][$counter]['Linking ISSN']['uneditable'] = array(
-                                '#type' => 'item',
-                                '#description' => $record->issn_l,
-                                '#value' => $record->issn_l,
-                                '#size' => 13,
-                                '#states' => array(
-                                    'visible' => array(
-                                        ':input[name="table[' . $counter . '][Edit]"]' => array(
-                                            'checked' => FALSE
-                                        )
-                                    )
-                                )
-                            );
-                        } else {
-                            $form['table'][$counter]['Linking ISSN']['uneditable'] = array(
-                                '#type' => 'item',
-                                '#description' => $record->issn_l,
-                                '#value' => $record->issn_l,
-                                '#size' => 13
-                            );
-                        }
-                        
-                        $form['table'][$counter]['Print ISSN'] = [
-                            '#type' => 'container'
-                        ];
-                        if (! $record->p_issn) {
-                            $form['table'][$counter]['Print ISSN']['editable'] = array(
-                                '#type' => 'textfield',
-                                '#default_value' => $record->p_issn,
-                                '#size' => 8,
-                                '#states' => array(
-                                    'visible' => array(
-                                        ':input[name="table[' . $counter . '][Edit]"]' => array(
-                                            'checked' => TRUE
-                                        )
-                                    )
-                                )
-                            );
-                            $form['table'][$counter]['Print ISSN']['uneditable'] = array(
-                                '#type' => 'item',
-                                '#description' => $record->p_issn,
-                                '#value' => $record->p_issn,
-                                '#size' => 13,
-                                '#states' => array(
-                                    'visible' => array(
-                                        ':input[name="table[' . $counter . '][Edit]"]' => array(
-                                            'checked' => FALSE
-                                        )
-                                    )
-                                )
-                            );
-                        } else {
-                            $form['table'][$counter]['Print ISSN']['uneditable'] = array(
-                                '#type' => 'item',
-                                '#description' => $record->p_issn,
-                                '#value' => $record->p_issn,
-                                '#size' => 13
-                            );
-                        }
-                        $form['table'][$counter]['Electronic ISSN'] = [
-                            '#type' => 'container'
-                        ];
-                        if (! $record->e_issn) {
-                            $form['table'][$counter]['Electronic ISSN']['editable'] = array(
-                                '#type' => 'textfield',
-                                '#default_value' => $record->e_issn,
-                                '#size' => 8,
-                                '#states' => array(
-                                    'visible' => array(
-                                        ':input[name="table[' . $counter . '][Edit]"]' => array(
-                                            'checked' => TRUE
-                                        )
-                                    )
-                                )
-                            );
-                            $form['table'][$counter]['Electronic ISSN']['uneditable'] = array(
-                                '#type' => 'item',
-                                '#description' => $record->e_issn,
-                                '#value' => $record->e_issn,
-                                '#size' => 13,
-                                '#states' => array(
-                                    'visible' => array(
-                                        ':input[name="table[' . $counter . '][Edit]"]' => array(
-                                            'checked' => FALSE
-                                        )
-                                    )
-                                )
-                            );
-                        } else {
-                            $form['table'][$counter]['Electronic ISSN']['uneditable'] = array(
-                                '#type' => 'item',
-                                '#description' => $record->e_issn,
-                                '#value' => $record->e_issn,
-                                '#size' => 13
-                                
-                            );
-                        }
-                        
-                        $form['table'][$counter]['LC Call Number'] = [
-                            '#type' => 'container'
-                        ];
-                        $form['table'][$counter]['LC Call Number']['editable'] = array(
+                    
+                    $form['table'][$counter]['Edit'] = [ // Edit checkbox
+                        '#type' => 'checkbox',
+                        '#default_value' => FALSE,
+                        '#attributes' => [
+                            'class' => [
+                                'editableCheckbox'
+                            ]
+                        ],
+                    ];
+                    $title = str_replace("\"", '', $record->title);
+                    $form['table'][$counter]['Title'] = array(
+                        '#type' => 'item',
+                        '#value' => $title,
+                        '#description' => $title,
+                        '#size' => 13
+                    
+                    );
+                    
+                    $form['table'][$counter]['Linking ISSN'] = [
+                        '#type' => 'container'
+                    ];
+                    if (! $record->issn_l) {
+                        $form['table'][$counter]['Linking ISSN']['editable'] = array(
                             '#type' => 'textfield',
-                            '#default_value' => $record->callnumber,
+                            '#default_value' => $record->issn_l,
                             '#size' => 8,
+                            '#attributes' => [
+                                'class' => [
+                                    'editableTF'
+                                ]
+                            ],
                             '#states' => array(
                                 'visible' => array(
                                     ':input[name="table[' . $counter . '][Edit]"]' => array(
@@ -302,15 +208,16 @@ class ResultsTable extends ConfigFormBase
                                 )
                             )
                         );
-                        $form['table'][$counter]['LC Call Number']['hiddenID'] = [
+                        $form['table'][$counter]['Linking ISSN']['uneditable'] = array(
                             '#type' => 'item',
-                            '#value' => $record->id
-                        ];
-                        $form['table'][$counter]['LC Call Number']['uneditable'] = array(
-                            '#type' => 'item',
-                            '#description' => $record->callnumber,
-                            '#value' => $record->callnumber,
+                            '#description' => $record->issn_l,
+                            '#value' => $record->issn_l,
                             '#size' => 13,
+                            '#attributes' => [
+                                'class' => [
+                                    'editableTF'
+                                ]
+                            ],
                             '#states' => array(
                                 'visible' => array(
                                     ':input[name="table[' . $counter . '][Edit]"]' => array(
@@ -319,50 +226,224 @@ class ResultsTable extends ConfigFormBase
                                 )
                             )
                         );
-                        
-                        $form['table'][$counter]['Source'] = array(
+                    } else {
+                        $form['table'][$counter]['Linking ISSN']['uneditable'] = array(
                             '#type' => 'item',
-                            '#description' => $record->source,
+                            '#description' => $record->issn_l,
+                            '#value' => $record->issn_l,
+                            '#attributes' => [
+                                'class' => [
+                                    'editableTF'
+                                ]
+                            ],
                             '#size' => 13
                         );
-                        $form['table'][$counter]['Added By'] = [
-                            '#type' => 'item',
-                            '#description' => \Drupal\user\Entity\User::load($record->user)->getDisplayName(),
-                            '#size' => 13
-                        ];
-                        
-                        $form['modifyoptions'] = [
-                            '#type' => 'select',
-                            '#options' => ['Edit selected entries', 'Delete selected entries'],
+                    }
+                    
+                    $form['table'][$counter]['Print ISSN'] = [
+                        '#type' => 'container'
+                    ];
+                    if (! $record->p_issn) {
+                        $form['table'][$counter]['Print ISSN']['editable'] = array(
+                            '#type' => 'textfield',
+                            '#default_value' => $record->p_issn,
+                            '#size' => 8,
                             '#attributes' => [
-                                'class' => ['modifyoptions']
-                            ]
-                        ];
-                        $form['editbutton'] = [
-                            '#type' => 'submit',
-                            '#value' => $this->t('Submit Changes')
-                            
-                        ];
-                        $editoroption = $form_state->getValue('editoroptions');
-                        $form['editoroptions'] = [
-                            '#type' => 'value',
-                            '#value' => $editoroption
-                        ];
-                        $form['searchtype'] = [
-                            '#type' => 'value',
-                            '#value' => $searchtype
-                        ];
-                        $form['searchterm'] = [
-                            '#type' => 'value',
-                            '#value' => $searchterm
-                        ];
-                        $form['searchtype'] = [
-                            '#type' => 'value',
-                            '#value' => $searchtype
-                        ];
+                                'class' => [
+                                    'editableTF'
+                                ]
+                            ],
+                            '#states' => array(
+                                'visible' => array(
+                                    ':input[name="table[' . $counter . '][Edit]"]' => array(
+                                        'checked' => TRUE
+                                    )
+                                )
+                            )
+                        );
+                        $form['table'][$counter]['Print ISSN']['uneditable'] = array(
+                            '#type' => 'item',
+                            '#description' => $record->p_issn,
+                            '#value' => $record->p_issn,
+                            '#size' => 13,
+                            '#attributes' => [
+                                'class' => [
+                                    'editableTF'
+                                ]
+                            ],
+                            '#states' => array(
+                                'visible' => array(
+                                    ':input[name="table[' . $counter . '][Edit]"]' => array(
+                                        'checked' => FALSE
+                                    )
+                                )
+                            )
+                        );
+                    } else {
+                        $form['table'][$counter]['Print ISSN']['uneditable'] = array(
+                            '#type' => 'item',
+                            '#description' => $record->p_issn,
+                            '#value' => $record->p_issn,
+                            '#attributes' => [
+                                'class' => [
+                                    'editableTF'
+                                ]
+                            ],
+                            '#size' => 13
+                        );
+                    }
+                    $form['table'][$counter]['Electronic ISSN'] = [
+                        '#type' => 'container'
+                    ];
+                    if (! $record->e_issn) {
+                        $form['table'][$counter]['Electronic ISSN']['editable'] = array(
+                            '#type' => 'textfield',
+                            '#default_value' => $record->e_issn,
+                            '#size' => 8,
+                            '#attributes' => [
+                                'class' => [
+                                    'editableTF'
+                                ]
+                            ],
+                            '#states' => array(
+                                'visible' => array(
+                                    ':input[name="table[' . $counter . '][Edit]"]' => array(
+                                        'checked' => TRUE
+                                    )
+                                )
+                            )
+                        );
+                        $form['table'][$counter]['Electronic ISSN']['uneditable'] = array(
+                            '#type' => 'item',
+                            '#description' => $record->e_issn,
+                            '#value' => $record->e_issn,
+                            '#size' => 13,
+                            '#attributes' => [
+                                'class' => [
+                                    'editableTF'
+                                ]
+                            ],
+                            '#states' => array(
+                                'visible' => array(
+                                    ':input[name="table[' . $counter . '][Edit]"]' => array(
+                                        'checked' => FALSE
+                                    )
+                                )
+                            )
+                        );
+                    } else {
+                        $form['table'][$counter]['Electronic ISSN']['uneditable'] = array(
+                            '#type' => 'item',
+                            '#description' => $record->e_issn,
+                            '#attributes' => [
+                                'class' => [
+                                    'editableTF'
+                                ]
+                            ],
+                            '#value' => $record->e_issn,
+                            '#size' => 13
                         
-                        $counter ++;
+                        );
+                    }
+                    
+                    $form['table'][$counter]['LC Call Number'] = [
+                        '#type' => 'container'
+                    ];
+                    $form['table'][$counter]['LC Call Number']['editable'] = array(
+                        '#type' => 'textfield',
+                        '#default_value' => $record->callnumber,
+                        '#size' => 8,
+                        '#attributes' => [
+                            'class' => [
+                                'editableTF'
+                            ]
+                        ],
+                        '#states' => array(
+                            'visible' => array(
+                                ':input[name="table[' . $counter . '][Edit]"]' => array(
+                                    'checked' => TRUE
+                                )
+                            )
+                        )
+                    );
+                    $form['table'][$counter]['LC Call Number']['hiddenID'] = [
+                        '#type' => 'item',
+                        '#value' => $record->id
+                    ];
+                    $form['table'][$counter]['LC Call Number']['uneditable'] = array(
+                        '#type' => 'item',
+                        '#description' => $record->callnumber,
+                        '#value' => $record->callnumber,
+                        '#attributes' => [
+                            'class' => [
+                                'editableTF'
+                            ]
+                        ],
+                        '#size' => 13,
+                        '#states' => array(
+                            'visible' => array(
+                                ':input[name="table[' . $counter . '][Edit]"]' => array(
+                                    'checked' => FALSE
+                                )
+                            )
+                        )
+                    );
+                    
+                    $form['table'][$counter]['Source'] = array(
+                        '#type' => 'item',
+                        '#description' => $record->source,
+                        '#attributes' => [
+                            'class' => [
+                                'editableTF'
+                            ]
+                        ],
+                        '#size' => 13
+                    );
+                    $form['table'][$counter]['Added By'] = [
+                        '#type' => 'item',
+                        '#description' => \Drupal\user\Entity\User::load($record->user)->getDisplayName(),
+                        '#size' => 13
+                    ];
+                    
+                    $editoroption = $form_state->getValue('editoroptions');
+                    $form['editoroptions'] = [
+                        '#type' => 'value',
+                        '#value' => $editoroption
+                    ];
+                    $form['searchtype'] = [
+                        '#type' => 'value',
+                        '#value' => $searchtype
+                    ];
+                    $form['searchterm'] = [
+                        '#type' => 'value',
+                        '#value' => $searchterm
+                    ];
+                    $form['searchtype'] = [
+                        '#type' => 'value',
+                        '#value' => $searchtype
+                    ];
+                    
+                    $counter ++;
                 }
+                $form['modifyoptions2'] = [
+                    '#type' => 'select',
+                    '#options' => [
+                        'Edit selected entries',
+                        'Delete selected entries'
+                    ],
+                    '#attributes' => [
+                        'class' => [
+                            'modifyoptions'
+                        ]
+                    ],
+                    '#prefix' => '<div class="container-inline">'
+                ];
+                $form['editbutton2'] = [
+                    '#type' => 'submit',
+                    '#value' => $this->t('Submit Changes'),
+                    '#suffix' => '</div>'
+                
+                ];
             } else // This displays a read only results page
             {
                 $counter = 0;
@@ -370,38 +451,70 @@ class ResultsTable extends ConfigFormBase
                     
                     if ($counter >= $form_state->get('resultsshown')) // This is what stops the page from displaying more than your requested num of results
                         break;
-                        $title = str_replace("\"", '', $record->title);
-                        $form['table'][$counter]['Title'] = array(
-                            '#type' => 'item',
-                            '#description' => $title
-                        );
+                    $title = str_replace("\"", '', $record->title);
+                    $form['table'][$counter]['Title'] = array(
+                        '#type' => 'item',
+                        '#attributes' => [
+                            'class' => [
+                                'centeredText'
+                            ]
+                        ],
+                        '#description' => $title
                         
-                        $form['table'][$counter]['Linking ISSN'] = array(
-                            '#type' => 'item',
-                            '#description' => $record->issn_l
-                        );
                         
-                        $form['table'][$counter]['Print ISSN'] = array(
-                            '#type' => 'item',
-                            '#description' => $record->p_issn
-                        );
-                        
-                        $form['table'][$counter]['Electronic ISSN'] = array(
-                            '#type' => 'item',
-                            '#description' => $record->e_issn
-                        );
-                        
-                        $form['table'][$counter]['LC Call Number'] = array(
-                            '#type' => 'item',
-                            '#description' => $record->callnumber
-                        );
-                        
-                        $form['table'][$counter]['Source'] = array(
-                            '#type' => 'item',
-                            '#description' => $record->source
-                        );
-                        
-                        $counter ++;
+                    );
+                    
+                    $form['table'][$counter]['Linking ISSN'] = array(
+                        '#type' => 'item',
+                        '#attributes' => [
+                            'class' => [
+                                'centeredText'
+                            ]
+                        ],
+                        '#description' => $record->issn_l
+                    );
+                    
+                    $form['table'][$counter]['Print ISSN'] = array(
+                        '#type' => 'item',
+                        '#attributes' => [
+                            'class' => [
+                                'centeredText'
+                            ]
+                        ],
+                        '#description' => $record->p_issn
+                    );
+                    
+                    $form['table'][$counter]['Electronic ISSN'] = array(
+                        '#type' => 'item',
+                        '#attributes' => [
+                            'class' => [
+                                'centeredText'
+                            ]
+                        ],
+                        '#description' => $record->e_issn
+                    );
+                    
+                    $form['table'][$counter]['LC Call Number'] = array(
+                        '#type' => 'item',
+                        '#attributes' => [
+                            'class' => [
+                                'centeredText'
+                            ]
+                        ],
+                        '#description' => $record->callnumber
+                    );
+                    
+                    $form['table'][$counter]['Source'] = array(
+                        '#type' => 'item',
+                        '#attributes' => [
+                            'class' => [
+                                'centeredText'
+                            ]
+                        ],
+                        '#description' => $record->source
+                    );
+                    
+                    $counter ++;
                 }
             }
         } else { // Search filter details below
@@ -410,26 +523,28 @@ class ResultsTable extends ConfigFormBase
             $editorOptionsTitle = '';
             $editorRadioOptions = [];
             $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
+            $email = $user->getEmail();;
+            
             $uid = $user->get('uid')->value;
             $userInst = $dbadmin->getUserInstitution($uid);
             if ($user->hasRole('authenticated')) { // This is for regular editors and above only
                 $editorRadioOptions[0] = t('Public search');
-                $editorRadioOptions[2] = t('Only display my contributions');
+                $editorRadioOptions[2] = t('Display ' . $email . '\'s contributions only [editing mode]');
                 $editorOptionsTitle = 'Editor Options';
             }
             if ($user->hasRole('editorial_user')) { // This is for institutional editors and above only
-                $editorRadioOptions[1] = t('Display all contributions from ' . $userInst);
+                $editorRadioOptions[1] = t('Display contributions from all of ' . $userInst . '\'s editors [editing mode]');
             }
             
             $config = $this->config('searchInterface.settings');
             
             $form['file_content'] = [
                 '#type' => 'radios',
-                '#title' => $this->t('Data type provided:'),
+                '#title' => $this->t('Filter Options'),
                 '#options' => [
-                    0 => t('ISSN'),
-                    1 => t('LC'),
-                    2 => t('Display Entire Database (for testing...)')
+                    0 => t('Search by ISSN to get LCs'),
+                    1 => t('Search by LC to get ISSNs'),
+                    2 => t('Get all results')
                 ],
                 '#default_value' => 0
             ];
@@ -439,12 +554,17 @@ class ResultsTable extends ConfigFormBase
                 '#options' => $editorRadioOptions,
                 '#default_value' => 0
             ];
-            $form['input_checkbox'] = [
+            $form['input_container'] = [
+              '#type' => 'container',
+                '#states' => array(
+                'visible' => array(':input[name="file_content"]' => [array('value' => '0'), array('value' => '1')])     )         
+            ];
+            $form['input_container']['input_checkbox'] = [
                 '#type' => 'checkbox',
                 '#title' => $this->t('Search via file upload')
-                
+            
             ];
-            $form['upload_container'] = [
+            $form['input_container']['upload_container'] = [
                 '#type' => 'container',
                 '#states' => array(
                     'visible' => array(
@@ -455,9 +575,10 @@ class ResultsTable extends ConfigFormBase
                 )
             ];
             
-            $form['pastebox'] = [
+            $form['input_container']['pastebox'] = [
                 '#type' => 'textarea',
                 '#default_value' => $config->get('textbox'),
+                '#label' => 'Enter your search term(s) in the area below',
                 '#cols' => 10,
                 '#states' => array(
                     'visible' => array(
@@ -465,9 +586,10 @@ class ResultsTable extends ConfigFormBase
                             'checked' => FALSE
                         )
                     )
+                
                 )
             ];
-            $form['upload_container']['fileupload'] = [
+            $form['input_container']['upload_container']['fileupload'] = [
                 '#type' => 'managed_file',
                 '#size' => 20,
                 '#upload_location' => 'public://uploads/',
@@ -479,7 +601,10 @@ class ResultsTable extends ConfigFormBase
                 '#required' => FALSE,
                 '#multiple' => FALSE
             ];
-            
+            $form['multiselect_label'] = [
+                '#type' => 'item',
+                '#description' => 'Search for Authorities to Use'
+            ];
             $form['multiselect'] = [
                 '#type' => 'select',
                 '#options' => $instList,
@@ -497,22 +622,21 @@ class ResultsTable extends ConfigFormBase
             $form['quantity'] = [
                 '#type' => 'number',
                 '#title' => $this->t('# of Previewed Results:'),
-                '#default_value' => $this->t('100'),
+                '#default_value' => $this->t('50'),
                 '#min' => '1',
-                '#max' => '10000',
+                '#max' => '5000',
                 '#size' => '5'
             ];
             
-            
             $form['display'] = [
                 '#type' => 'submit',
-                '#value' => $this->t('Fetch Results')
-                
+                '#value' => $this->t('Get Results')
+            
             ];
         }
         return $form;
     }
-    
+
     /**
      * This method will be called automatically upon submission.
      * This is the shit that gets done if the user's input passes validation.
@@ -551,24 +675,22 @@ class ResultsTable extends ConfigFormBase
             }
         }
         $values = $form_state->getValues();
-        if (!array_key_exists('Edit', $values['table'][0]))
-        {
-            
+        if (! array_key_exists('Edit', $values['table'][0])) {
             
             if ($form_state->getValue('file_content') === '0') {
                 $searchtype = 'issn';
-                $searchterm = $form_state->getValue('pastebox'); // This is the text box field
+                $searchterm = $form_state->getValue(['pastebox']); // This is the text box field
             } else if ($form_state->getValue('file_content') === '1') {
                 $searchtype = 'lccn';
-                $searchterm = $form_state->getValue('pastebox');
+                $searchterm = $form_state->getValue(['pastebox']);
             } else if ($form_state->getValue('file_content') === '2') {
                 $searchtype = 'all';
                 $searchterm = '';
             }
             
-            if ($form_state->getValue('input_checkbox')) // Attempt to take in file input
+            if ($form_state->getValue(['input_checkbox'])) // Attempt to take in file input
             {
-                $fid = $form_state->getValue('fileupload');
+                $fid = $form_state->getValue(['fileupload']);
                 if (array_key_exists('0', $fid)) // File was in fact uploaded
                 {
                     $fid = $fid[0];
@@ -600,7 +722,6 @@ class ResultsTable extends ConfigFormBase
             }
         }
         
-        
         if (! $form_state->hasValue('searchterm')) {
             $form_state->set('searchterm', $searchterm);
         }
@@ -615,121 +736,107 @@ class ResultsTable extends ConfigFormBase
         if (array_key_exists('quantity', $form_state->getValues())) {
             $form_state->set('resultsshown', $form_state->getValue('quantity'));
         }
-        if (!array_key_exists('resultsshown', $form_state->getValues()))
-        {
+        if (! array_key_exists('resultsshown', $form_state->getValues())) {
             $form['resultsshown'] = [
                 '#type' => 'value',
-                '#value' => $form_state->get('resultsshown') //Maintains results per page choice on form submission
+                '#value' => $form_state->get('resultsshown') // Maintains results per page choice on form submission
             ];
         }
         
-        
-        //Edit submitting stuff below
-        if (array_key_exists('Edit', $values['table'][0]))
-        {
-            
+        // Edit submitting stuff below
+        if (array_key_exists('Edit', $values['table'][0])) {
             
             $editLines = [];
             for ($i = 0, $f = 0; array_key_exists($i, $form_state->getValues()['table']); $i ++) {
                 if ($form_state->getValues()['table'][$i]['Edit'] === '1') // If this line was checked for editing
                 {
                     
-                    
                     $currentLine = $form_state->getValues()['table'][$i];
                     $title = $currentLine['Title'];
                     
                     if (array_key_exists('editable', $currentLine['LC Call Number']))
                         $lc = $currentLine['LC Call Number']['editable'];
-                        else
-                            $lc = $currentLine['LC Call Number']['uneditable'];
-                            
-                            if (array_key_exists('editable', $currentLine['Print ISSN']))
-                                $p_issn = $currentLine['Print ISSN']['editable'];
-                                else
-                                    $p_issn = $currentLine['Print ISSN']['uneditable'];
-                                    
-                                    if (array_key_exists('editable', $currentLine['Electronic ISSN']))
-                                        $e_issn = $currentLine['Electronic ISSN']['editable'];
-                                        else
-                                            $e_issn = $currentLine['Electronic ISSN']['uneditable'];
-                                            
-                                            if (array_key_exists('editable', $currentLine['Linking ISSN']))
-                                                $l_issn = $currentLine['Linking ISSN']['editable'];
-                                                else
-                                                    $l_issn = $currentLine['Linking ISSN']['uneditable'];
-                                                    $id = $currentLine['LC Call Number']['hiddenID'];
-                                                    
-                                                    $editLines[$f] = [
-                                                        $title,
-                                                        $p_issn,
-                                                        $e_issn,
-                                                        $l_issn,
-                                                        $lc,
-                                                        $id,
-                                                    ];
-                                                    $f ++;
-                                                    // echo 'Title: ' . $title . ' Print: ' . $p_issn . ' Electronic: ' . $e_issn . ' Linking ' . $l_issn . ' LC: ' . $lc;
+                    else
+                        $lc = $currentLine['LC Call Number']['uneditable'];
+                    
+                    if (array_key_exists('editable', $currentLine['Print ISSN']))
+                        $p_issn = $currentLine['Print ISSN']['editable'];
+                    else
+                        $p_issn = $currentLine['Print ISSN']['uneditable'];
+                    
+                    if (array_key_exists('editable', $currentLine['Electronic ISSN']))
+                        $e_issn = $currentLine['Electronic ISSN']['editable'];
+                    else
+                        $e_issn = $currentLine['Electronic ISSN']['uneditable'];
+                    
+                    if (array_key_exists('editable', $currentLine['Linking ISSN']))
+                        $l_issn = $currentLine['Linking ISSN']['editable'];
+                    else
+                        $l_issn = $currentLine['Linking ISSN']['uneditable'];
+                    $id = $currentLine['LC Call Number']['hiddenID'];
+                    
+                    $editLines[$f] = [
+                        $title,
+                        $p_issn,
+                        $e_issn,
+                        $l_issn,
+                        $lc,
+                        $id
+                    ];
+                    $f ++;
+                    // echo 'Title: ' . $title . ' Print: ' . $p_issn . ' Electronic: ' . $e_issn . ' Linking ' . $l_issn . ' LC: ' . $lc;
                 }
             }
             $deleteCount = 0;
             $editCount = 0;
             for ($g = 0; $g < count($editLines); $g ++) { // insert($title, $l_issn, $p_issn, $e_issn, $lc)
-                if ($form_state->getValue('modifyoptions') === '0') //We're editing
+                if ($form_state->getValue('modifyoptions') === '0' || $form_state->getValue('modifyoptions2') === '0') // We're editing
                 {
                     $messages = $dbadmin->insert("\"" . $editLines[$g][0] . "\"", $editLines[$g][3], $editLines[$g][1], $editLines[$g][2], $editLines[$g][4]);
                     if ($messages[0] != '0') // No errors, we can delete the old entry.
                     {
                         $id = $editLines[$g][5];
                         $dbadmin->deleteLCById($id);
-                        $editCount++;
-                        
-                        
+                        $editCount ++;
                     } else {
                         for ($q = 0; $q < count($messages[1]); $q ++) {
                             drupal_set_message($messages[1][$q], 'error');
                         }
                     }
-                }
-                
-                else //We're deleting
+                } 
+                else // We're deleting
                 {
                     $id = $editLines[$g][5];
                     $dbadmin->deleteLCById($id);
-                    $deleteCount++;
-                    
+                    $deleteCount ++;
                 }
             }
             if ($deleteCount != 0 && $deleteCount != 1)
                 drupal_set_message($deleteCount . ' entries were deleted!');
-                if ($deleteCount === 1)
-                    drupal_set_message('One entry was deleted!');
-                    
-                    if ($editCount != 0 && $editCount != 1)
-                        drupal_set_message($editCount . ' entries were edited successfully!');
-                        if ($editCount === 1)
-                            drupal_set_message('One entry was edited successfully!');
-                            
-                            
-                            
-                            $form['searchtype'] = [
-                                '#type' => 'value',
-                                '#value' => $form_state->getValue('searchtype')
-                            ];
-                            $form['searchterm'] = [
-                                '#type' => 'value',
-                                '#value' => $form_state->getValue('searchterm')
-                            ];
-                            
-                            $form_state->setValue('institutions', $chosenInstList);
-                            
-                            
-                            
-                            $input = $form_state->getUserInput();
-                            unset($input['table']); //Ensures the previously generated table is wiped so we can repopulate it after the edit
-                            unset($input['modifyoptions']);
-                            $form_state->setUserInput($input);
-                            
-                            
+            if ($deleteCount === 1)
+                drupal_set_message('One entry was deleted!');
+            
+            if ($editCount != 0 && $editCount != 1)
+                drupal_set_message($editCount . ' entries were edited successfully!');
+            if ($editCount === 1)
+                drupal_set_message('One entry was edited successfully!');
+            
+            $form['searchtype'] = [
+                '#type' => 'value',
+                '#value' => $form_state->getValue('searchtype')
+            ];
+            $form['searchterm'] = [
+                '#type' => 'value',
+                '#value' => $form_state->getValue('searchterm')
+            ];
+            
+            $form_state->setValue('institutions', $chosenInstList);
+            
+            $input = $form_state->getUserInput();
+            unset($input['table']); // Ensures the previously generated table is wiped so we can repopulate it after the edit
+            unset($input['modifyoptions']);
+            unset($input['modifyoptions2']);
+            $form_state->setUserInput($input);
         }
         
         $form_state->set('submitted', 1);
@@ -737,7 +844,7 @@ class ResultsTable extends ConfigFormBase
         
         return $form;
     }
-    
+
     public function getRecordSet($searchtype, $searchterm, $institutions)
     {
         $dbadmin = new DBAdmin();
@@ -753,26 +860,26 @@ class ResultsTable extends ConfigFormBase
                 $issn = preg_replace($pattern, '', t($issn)); // Removes any form of white space from the ISSN we're searching for
                 if (strlen($issn) < 8) // Don't search for this input if it's 7 chars or less. (newlines were getting searched for and returning everything in addition. )
                     continue;
-                    
-                    if (strpos($issn, "-") === false) // If $issn doesn't contain a hyphen
-                        $issn = (substr($issn, 0, 4) . '-' . substr($issn, 4, 7)); // Put one there (breaks if anything precedes the issn, cleansing is key here)
-                        
-                        $newRecordSet = null;
-                        $newRecordSet = $dbadmin->selectByISSN($issn); // gets a list of results from the next ISSN query
-                        
-                        foreach ($newRecordSet as $record) // goes through that list of results row by row
+                
+                if (strpos($issn, "-") === false) // If $issn doesn't contain a hyphen
+                    $issn = (substr($issn, 0, 4) . '-' . substr($issn, 4, 7)); // Put one there (breaks if anything precedes the issn, cleansing is key here)
+                
+                $newRecordSet = null;
+                $newRecordSet = $dbadmin->selectByISSN($issn); // gets a list of results from the next ISSN query
+                
+                foreach ($newRecordSet as $record) // goes through that list of results row by row
+                {
+                    if (in_array($record->source, $institutions, FALSE)) {
+                        if (! array_key_exists('userID', $institutions)) // if the special key userID is not set, continue as normal
                         {
-                            if (in_array($record->source, $institutions, FALSE)) {
-                                if (! array_key_exists('userID', $institutions)) // if the special key userID is not set, continue as normal
-                                {
-                                    array_push($recordSet, $record);
-                                } else // if it is set, only push records that are from that user ID
-                                {
-                                    if ($record->user === $institutions['userID']) // Checks if that line was uploaded by the current user, only adds line if it was.
-                                        array_push($recordSet, $record);
-                                }
-                            }
+                            array_push($recordSet, $record);
+                        } else // if it is set, only push records that are from that user ID
+                        {
+                            if ($record->user === $institutions['userID']) // Checks if that line was uploaded by the current user, only adds line if it was.
+                                array_push($recordSet, $record);
                         }
+                    }
+                }
             }
         } // ~~~LCCN specific input cleansing below~~~
         else if ($searchtype === 'lccn') {
@@ -822,18 +929,25 @@ class ResultsTable extends ConfigFormBase
         
         return $recordSet;
     }
-    
+
     public function massageFormValues(array $values, array $form, FormStateInterface $form_state)
     {
         for ($i = 0; $i < count($values); $i ++) {
-            if (isset($values[$i]['upload_container']['fileupload'])) {
-                $values[$i]['fileupload'] = $values[$i]['upload_container']['fileupload'];
+            if (isset($values[$i]['input_container']['upload_container']['fileupload'])) {
+                $values[$i]['fileupload'] = $values[$i]['input_container']['upload_container']['fileupload'];
             }
-            
+            if (isset($values[$i]['input_container']['pastebox']))
+            {
+                $values[$i]['pastebox'] = $values[$i]['input_container']['pastebox'];
+            }
+            if (isset($values[$i]['input_container']['input_checkbox']))
+            {
+                $values[$i]['input_checkbox'] = $values[$i]['input_container']['input_checkbox'];
+            }
         }
         return $values;
     }
-    
+
     /**
      *
      * {@inheritdoc}
@@ -844,7 +958,7 @@ class ResultsTable extends ConfigFormBase
             'results_page.settings'
         ];
     }
-    
+
     /**
      *
      * {@inheritdoc}
