@@ -436,8 +436,26 @@ class FileUploadForm extends FormBase {
 		}
 	}
 	
-	if($errorCount > 0)
+	if($errorCount > 0) {
 		$form_state->set('lineError', 1); //Note there is one error at least
+		
+		//create the file	  
+		$file = fopen($this->fileLocation . $this->fileName, "w");
+		fwrite($file, "Line#,p_issn,e_issn,l_issn,lc,title,Reason(s)\n"); //write header to file
+		foreach($form_state->get('tabledata') as $row) {
+			$printOut = "$row[0],$row[1],$row[2],$row[3],$row[4],$row[5],$row[6]\n"; //write each invalid line
+			fwrite($file, $printOut);
+		}
+		fclose($file);
+	
+		// send an email message when done
+		$user = \Drupal::currentUser();
+		$to = $user->getEmail();
+		$from = "noreply@upei.ca"; //this can be changed to a real address if desired
+		$subject = "ISSN Upload Report";
+		$body = "Your file has been processed. Your report is available <a href='http://issn.researchspaces.ca/".$this->fileLocation . $this->fileName."'> HERE.</a>.";
+		simple_mail_send($from, $to, $subject, $body);
+	}
 	
 	if($headersCorrect) {
 		drupal_set_message("Upload Complete");
@@ -449,32 +467,16 @@ class FileUploadForm extends FormBase {
 		$form_state->set('submitted', 1); //Form has been submitted
 		$form_state->setRebuild(); //Update the form elements
 	}
-	  
-	//create the file	  
-	$file = fopen($this->fileLocation . $this->fileName, "w");
-	fwrite($file, "Line#,p_issn,e_issn,l_issn,lc,title,Reason(s)\n"); //write header to file
-	foreach($form_state->get('tabledata') as $row) {
-        $printOut = "$row[0],$row[1],$row[2],$row[3],$row[4],$row[5],$row[6]\n"; //write each invalid line
-        fwrite($file, $printOut);
-	}
-	fclose($file);
+	 
 	
-	// send an email message when done
-	$user = \Drupal::currentUser();
-	$to = $user->getEmail();
-	$from = "noreply@upei.ca"; //this can be changed to a real address if desired
-	$subject = "ISSN Upload Report";
-	$body = "Your file has been processed. Your report is available <a href='http://issn.researchspaces.ca/".$this->fileLocation . $this->fileName."'> HERE.</a>.";
-	simple_mail_send($from, $to, $subject, $body);
 	
 	return $form;
   }
   public function downloadForm(array &$form, FormStateInterface $form_state) {
-	
 	//Serve the file to the user
 	//Note the file is already created by this point
 	header('Content-Description: File Transfer');
-        header('Content-Type: application/octet-stream');
+    header('Content-Type: application/octet-stream');
 	header('Content-Disposition: attachment; filename="'.$this->fileName.'"');
 	readfile($this->fileLocation . $this->fileName);
 		

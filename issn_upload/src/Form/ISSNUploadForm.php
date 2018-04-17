@@ -7,6 +7,9 @@ use Drupal\dbclasses\DBRecord;
 use Drupal\Core\File\File;
 class ISSNUploadForm extends FormBase {
 	
+  private $fileLocation = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
+  private $fileName = "";
+	
   public function buildForm(array $form, FormStateInterface $form_state) {
 	
 	  
@@ -272,8 +275,27 @@ class ISSNUploadForm extends FormBase {
 			
 		}
 		
-		if($errorCount > 0)
+		if($errorCount > 0) {
 			$form_state->set('lineError', 1); //Note there is one error at least
+			
+			//create the file
+			$fileName = "InvalidsISSN". uniqid() .".txt";
+			$file = fopen($fileLocation . $fileName, "w");
+			fwrite($file, "Line#,p_issn,e_issn,l_issn,title,Reason(s)\n"); //write header to file
+			foreach($form_state->get('tabledata') as $row) {
+				$printOut = "$row[0],$row[1],$row[2],$row[3],$row[4],$row[5]\n"; //write each invalid line
+				fwrite($file, $printOut);
+			}
+			fclose($file);
+			
+			// send an email message when done
+			$user = \Drupal::currentUser();
+			$to = $user->getEmail();
+			$from = "no-reply@issn.researchspaces.ca"; //this can be changed to a real address if desired
+			$subject = "ISSN Upload Report";
+			$body = "Your file has been processed. Your report is available <a href='http://www.issn.researchspaces.ca/".$fileLocation . $fileName."'>HERE</a>.";
+			simple_mail_send($from, $to, $subject, $body);
+		}
 		
 		drupal_set_message("Upload Complete");
 		drupal_set_message("File contained " . ($lineCount - 1) . " entries");
@@ -287,30 +309,13 @@ class ISSNUploadForm extends FormBase {
 	return $form;
   }
   public function downloadForm(array &$form, FormStateInterface $form_state) {
-	$fileLocation = "sites/default/files/downloads/"; // recommended this stay the same (NOTE: YOU MUST MANUALLY CREATE THIS FOLDER ONCE)
-	$fileName = "InvalidsISSN". uniqid() .".txt";
-	$file = fopen($fileLocation . $fileName, "w");
-	fwrite($file, "Line#,p_issn,e_issn,l_issn,title,Reason(s)\n"); //write header to file
-	foreach($form_state->get('tabledata') as $row) {
-        $printOut = "$row[0],$row[1],$row[2],$row[3],$row[4],$row[5]\n"; //write each invalid line
-        fwrite($file, $printOut);
-	}
-	fclose($file);
-	
 	//Serve the file to the user
+	//Note the file is already created by this point
 	header('Content-Description: File Transfer');
     header('Content-Type: application/octet-stream');
 	header('Content-Disposition: attachment; filename="'.$fileName.'"');
 	readfile($fileLocation . $fileName);
 	
-	// send an email message when done
-	$user = \Drupal::currentUser();
-	$to = $user->getEmail();
-	$from = "no-reply@issn.researchspaces.ca"; //this can be changed to a real address if desired
-	$subject = "ISSN Upload Report";
-	$body = "Your file has been processed. Your report is available <a href='http://www.issn.researchspaces.ca/".$fileLocation . $fileName."'>HERE</a>.";
-	simple_mail_send($from, $to, $subject, $body);
-		
 	exit;
   }
   
