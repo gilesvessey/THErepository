@@ -28,7 +28,7 @@ class DBAdmin
 
 		//Regular expressions for validating inputs
 		$regISSN = '/^[0-9]{4}-?[0-9]{3}([0-9]|(X|x))$/'; //Accepts an ISSN with or without a hyphen
-		$regLC = '/^([a-zA-Z]{1,3})(([0-9]{0,4})|([0-9]{0,4}\.([0-9]{1,4})))(\.[a-zA-Z][0-9]{0,3}){0,2}$/'; //Strict LC, no extra stuff allowed at the end
+		$regLC = '/^([a-zA-Z]{1,3})(([0-9]{0,4})|([0-9]{0,4}\.([0-9]{1,4})))(\.[a-zA-Z][0-9]{0,4}){0,2}$/'; //Strict LC, no extra stuff allowed at the end
 
 		$errors = []; //Holds error messages
 		//Make sure one of p or e issn is present
