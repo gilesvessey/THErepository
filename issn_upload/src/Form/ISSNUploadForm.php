@@ -16,7 +16,7 @@ class ISSNUploadForm extends FormBase {
 	//Link to info page. Opens in a new window/tab
 	$form['info_link'] = [
 		'#type' => 'item',
-		'#markup' => "<a href='about_upload' target='_blank'>For more info about upload requirements, click here.</a>",
+		'#markup' => "See also: <a href='about_upload' target='_blank'>Upload Requirements</a>",
 	];  
 	$form['table_link'] = [
 	    '#type' => 'item',
