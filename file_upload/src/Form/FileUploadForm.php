@@ -17,6 +17,10 @@ class FileUploadForm extends FormBase {
 		'#type' => 'item',
 		'#markup' => "<a href='about_upload' target='_blank'>For more info about upload requirements, click here.</a>",
 	];  	  
+	$form['upload_link'] = [
+	    '#type' => 'item',
+	    '#markup' => "See also: <a href='single_upload' target='_blank'>Single Insertion Page</a>",
+	];
 	  
 	//After submission, if there were any invalid lines, print them to this table
 	if($form_state->get('submitted') == 1 && $form_state->get('lineError') == 1) {

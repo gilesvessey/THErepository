@@ -15,6 +15,10 @@ class SingleUploadForm extends FormBase {
 		'#markup' => "<a href='about_upload' target='_blank'>For more info about upload requirements, click here.</a>",
 		
 	];
+	$form['upload_link'] = [
+	    '#type' => 'item',
+	    '#markup' => "See also: <a href='upload' target='_blank'>Standard Upload Page</a>",
+	];
 	
 	//Single entry elements
 	//P-ISSN
