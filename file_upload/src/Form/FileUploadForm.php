@@ -159,7 +159,10 @@ class FileUploadForm extends FormBase {
   }
 	
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Handle submitted values in $form_state here.
+	//clear drupal_set_message()
+	$messages = drupal_get_messages();
+	
+   	// Handle submitted values in $form_state here.
 	$dbAdmin = new DBAdmin();
 	
 	$database = \Drupal::database(); //Drupal saves references in its database to all files uploaded via managed_file
