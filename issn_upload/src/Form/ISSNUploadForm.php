@@ -18,6 +18,10 @@ class ISSNUploadForm extends FormBase {
 		'#type' => 'item',
 		'#markup' => "<a href='about_upload' target='_blank'>For more info about upload requirements, click here.</a>",
 	];  
+	$form['table_link'] = [
+	    '#type' => 'item',
+	    '#markup' => "See also: <a href='issn_table'>ISSN Linking List Management Page</a>",
+	]; 
 	
 	//After submission, if there were any invalid lines, print them to this table
 	if($form_state->get('submitted') == 1 && $form_state->get('lineError') == 1) {

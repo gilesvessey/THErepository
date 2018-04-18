@@ -11,18 +11,21 @@ use Drupal\dbclasses\DBRecord;
 
 class IssnTableForm extends FormBase
 {
-
+    
     public function getFormId()
     {
         return 'issn_table_form';
     }
-
+    
     public function buildForm(array $form, FormStateInterface $form_state)
     {
-
-	    
-	    
-		$dbadmin = new DBAdmin();
+        
+        
+        $form['upload_link'] = [
+            '#type' => 'item',
+            '#markup' => "See also: <a href='issn_upload'>ISSN Linking List Upload Page</a>",
+        ];
+        $dbadmin = new DBAdmin();
         if ($form_state->get('submitted') === 1) {
             $values = $form_state->getValues();
             $searchterm = $values['searchterm'];
@@ -77,7 +80,7 @@ class IssnTableForm extends FormBase
                             )
                         )
                     )
-                
+                    
                 ];
                 $form['table'][$counter]['Title']['issnID'] = [
                     '#type' => 'value',
@@ -109,7 +112,7 @@ class IssnTableForm extends FormBase
                             )
                         )
                     )
-                
+                    
                 ];
                 
                 $form['table'][$counter]['Print ISSN'] = [
@@ -138,7 +141,7 @@ class IssnTableForm extends FormBase
                             )
                         )
                     )
-                
+                    
                 ];
                 $form['table'][$counter]['Electronic ISSN'] = [
                     '#type' => 'container'
@@ -166,9 +169,9 @@ class IssnTableForm extends FormBase
                             )
                         )
                     )
-                
+                    
                 ];
-
+                
                 $form['modifyoptions'] = [
                     '#type' => 'select',
                     '#options' => [
@@ -184,7 +187,7 @@ class IssnTableForm extends FormBase
                 $form['editbutton'] = [
                     '#type' => 'submit',
                     '#value' => $this->t('Submit Changes')
-                
+                    
                 ];
                 
                 $form['searchterm'] = [
@@ -201,7 +204,7 @@ class IssnTableForm extends FormBase
             $form['searchterm'] = [
                 '#title' => 'Enter your query below...',
                 '#type' => 'textfield'
-            
+                
             ];
             $form['searchtype'] = [
                 '#type' => 'radios',
@@ -215,16 +218,16 @@ class IssnTableForm extends FormBase
             $form['display'] = [
                 '#type' => 'submit',
                 '#value' => $this->t('Fetch Results')
-            
+                
             ];
         }
         
         return $form;
     }
-
+    
     public function validateForm(array &$form, FormStateInterface $form_state)
     {}
-
+    
     public function submitForm(array &$form, FormStateInterface $form_state)
     {
         $values = $form_state->getValues();
@@ -243,30 +246,30 @@ class IssnTableForm extends FormBase
                     $currentLine = $form_state->getValues()['table'][$i];
                     $title = $currentLine['Title']['editable'];
                     
-                   
-                            
-
-                                $p_issn = $currentLine['Print ISSN']['editable'];
-
-                                    
-                                    
-                                        $e_issn = $currentLine['Electronic ISSN']['editable'];
-                                       
-                                            
-                                           
-                                                $l_issn = $currentLine['Linking ISSN']['editable'];
-                                               
-                                                    $id = $currentLine['Title']['issnID'];
-                                                    
-                                                    $editLines[$f] = [
-                                                        $title,
-                                                        $l_issn,
-                                                        $p_issn,
-                                                        $e_issn,
-                                                        $id,
-                                                    ];
-                                                    $f ++;
-                                                    // echo 'Title: ' . $title . ' Print: ' . $p_issn . ' Electronic: ' . $e_issn . ' Linking ' . $l_issn . ' LC: ' . $lc;
+                    
+                    
+                    
+                    $p_issn = $currentLine['Print ISSN']['editable'];
+                    
+                    
+                    
+                    $e_issn = $currentLine['Electronic ISSN']['editable'];
+                    
+                    
+                    
+                    $l_issn = $currentLine['Linking ISSN']['editable'];
+                    
+                    $id = $currentLine['Title']['issnID'];
+                    
+                    $editLines[$f] = [
+                        $title,
+                        $l_issn,
+                        $p_issn,
+                        $e_issn,
+                        $id,
+                    ];
+                    $f ++;
+                    // echo 'Title: ' . $title . ' Print: ' . $p_issn . ' Electronic: ' . $e_issn . ' Linking ' . $l_issn . ' LC: ' . $lc;
                 }
             }
             $deleteCount = 0;
@@ -315,7 +318,7 @@ class IssnTableForm extends FormBase
                                 '#value' => $form_state->getValue('searchterm')
                             ];
                             
-                        
+                            
                             
                             
                             
@@ -331,7 +334,7 @@ class IssnTableForm extends FormBase
         $form_state->set('submitted', 1);
         $form_state->setRebuild();
     }
-
+    
     public function getRecordSet($searchterm, $searchtype)
     {
         $dbadmin = new DBAdmin();
@@ -339,7 +342,7 @@ class IssnTableForm extends FormBase
         
         $tableData = [];
         $i = 0;
-
+        
         foreach ($recordSet as $record) {
             if ($searchtype === '0') // searching by issn
             {
@@ -347,11 +350,11 @@ class IssnTableForm extends FormBase
                 $searchterm = preg_replace($pattern, '', t($searchterm)); // Removes any form of white space from the ISSN we're searching for
                 if (strpos($searchterm, "-") === false) // If $issn doesn't contain a hyphen
                     $searchterm = (substr($searchterm, 0, 4) . '-' . substr($searchterm, 4, 7));
-                if ($record[1] === $searchterm || $record[2] === $searchterm || $record[3] === $searchterm) {
-                    $tableData[$i] = $record;
-                    $i ++;
-                }
-            } 
+                    if ($record[1] === $searchterm || $record[2] === $searchterm || $record[3] === $searchterm) {
+                        $tableData[$i] = $record;
+                        $i ++;
+                    }
+            }
             else // Searching by title
             {
                 $title = str_replace("\"", '', $record[4]);
