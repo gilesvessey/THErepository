@@ -113,7 +113,8 @@ class ISSNUploadForm extends FormBase {
 	
 	
   public function validateForm(array &$form, FormStateInterface $form_state) {
-	
+		$userID = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id()); //get the current user's info
+		$this->fileName = "ISSNInvalids". $userID->get('uid')->value .".csv"; //generate a name on submit
 	}
 	
   public function submitForm(array &$form, FormStateInterface $form_state) {
@@ -283,8 +284,8 @@ class ISSNUploadForm extends FormBase {
 			$form_state->set('lineError', 1); //Note there is one error at least
 			
 			//create the file
-			$fileName = "InvalidsISSN". uniqid() .".csv";
-			$file = fopen($fileLocation . $fileName, "w");
+			//$fileName = "InvalidsISSN". uniqid() .".csv";
+			$file = fopen($this->fileLocation . $this->fileName, "w");
 			fwrite($file, "Line#,p_issn,e_issn,l_issn,title,Reason(s)\n"); //write header to file
 			foreach($form_state->get('tabledata') as $row) {
 				$printOut = "$row[0],$row[1],$row[2],$row[3],$row[4],$row[5]\n"; //write each invalid line
@@ -297,7 +298,7 @@ class ISSNUploadForm extends FormBase {
 			$to = $user->getEmail();
 			$from = "no-reply@issn.researchspaces.ca"; //this can be changed to a real address if desired
 			$subject = "ISSN Upload Report";
-			$body = "Your file has been processed. Your report is available <a href='http://issn.researchspaces.ca/".$fileLocation . $fileName."'>HERE</a>.";
+			$body = "Your file has been processed. Your report is available <a href='http://issn.researchspaces.ca/".$this->fileLocation . $this->fileName."'>HERE</a>.";
 			simple_mail_send($from, $to, $subject, $body);
 		}
 		
@@ -316,9 +317,9 @@ class ISSNUploadForm extends FormBase {
 	//Serve the file to the user
 	//Note the file is already created by this point
 	header('Content-Description: File Transfer');
-    header('Content-Type: application/octet-stream');
-	header('Content-Disposition: attachment; filename="'.$fileName.'"');
-	readfile($fileLocation . $fileName);
+    	header('Content-Type: application/octet-stream');
+	header('Content-Disposition: attachment; filename="'.$this->fileName.'"');
+	readfile($this->fileLocation . $this->fileName);
 	
 	exit;
   }
