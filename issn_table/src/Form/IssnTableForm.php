@@ -20,7 +20,6 @@ class IssnTableForm extends FormBase
     public function buildForm(array $form, FormStateInterface $form_state)
     {
         
-        
         $form['upload_link'] = [
             '#type' => 'item',
             '#markup' => "See also: <a href='issn_upload'>ISSN Linking List Upload Page</a>",
@@ -198,6 +197,24 @@ class IssnTableForm extends FormBase
                 
                 $counter ++;
             }
+            
+            
+            
+            $values = $form_state->getValues();
+            $searchterm = $values['searchterm'];
+            $searchtype = $values['searchtype'];
+            
+            $form['searchtype'] = [
+                '#type' => 'value',
+                '#value' => $searchtype
+            ];
+            $form['searchterm'] = [
+                '#type' => 'value',
+                '#value' => $searchterm
+            ];
+            
+            
+            
         } else // End results
         {
             // Search filter here
@@ -307,16 +324,7 @@ class IssnTableForm extends FormBase
                         if ($editCount === 1)
                             drupal_set_message('One entry was edited successfully!');
                             
-                            
-                            
-                            $form['searchtype'] = [
-                                '#type' => 'value',
-                                '#value' => $form_state->getValue('searchtype')
-                            ];
-                            $form['searchterm'] = [
-                                '#type' => 'value',
-                                '#value' => $form_state->getValue('searchterm')
-                            ];
+
                             
                             
                             
