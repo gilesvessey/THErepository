@@ -41,7 +41,6 @@ class InstitutionForm extends ConfigFormBase {
 
     $form['contacts'][$i]['operation'] = array(
 		'#type' => 'checkbox',
-    '#title' => $this->t("Delete"),
 	  );
     $form['contacts'][$i]['Id'] = array(
 		'#type' => 'item',
@@ -94,7 +93,7 @@ $form['submit'] = [
 
   public function validateForm(array &$form, FormStateInterface $form_state)
   {
-    
+
     $extension = $form_state->getValue('extension');
     if(preg_match('/^@\w*\W\w*/', $extension) == false)
     {
