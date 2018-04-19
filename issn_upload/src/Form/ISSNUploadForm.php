@@ -283,7 +283,7 @@ class ISSNUploadForm extends FormBase {
 			$form_state->set('lineError', 1); //Note there is one error at least
 			
 			//create the file
-			$fileName = "InvalidsISSN". uniqid() .".txt";
+			$fileName = "InvalidsISSN". uniqid() .".csv";
 			$file = fopen($fileLocation . $fileName, "w");
 			fwrite($file, "Line#,p_issn,e_issn,l_issn,title,Reason(s)\n"); //write header to file
 			foreach($form_state->get('tabledata') as $row) {
@@ -297,7 +297,7 @@ class ISSNUploadForm extends FormBase {
 			$to = $user->getEmail();
 			$from = "no-reply@issn.researchspaces.ca"; //this can be changed to a real address if desired
 			$subject = "ISSN Upload Report";
-			$body = "Your file has been processed. Your report is available <a href='http://www.issn.researchspaces.ca/".$fileLocation . $fileName."'>HERE</a>.";
+			$body = "Your file has been processed. Your report is available <a href='http://issn.researchspaces.ca/".$fileLocation . $fileName."'>HERE</a>.";
 			simple_mail_send($from, $to, $subject, $body);
 		}
 		
