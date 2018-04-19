@@ -95,6 +95,12 @@ $form['name'] = [
     {
       $form_state->setErrorByName('extension', $this->t('The extension should be of this format "@upei.ca"'));
     }
+    
+    $name = $form_state->getValue('name');
+    if(preg_match('/^[a-zA-Z0-9_].+$/', $name) == false)
+    {
+      $form_state->setErrorByName('name', $this->t('Please enter an affiliation.'));
+    }
   }
 
 	/**
