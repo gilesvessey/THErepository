@@ -21,11 +21,12 @@ class InstitutionForm extends ConfigFormBase {
   $query = $connection->query("SELECT * FROM {institution}");
   $results = $query->fetchAll();
 
+
 // Creates a header for the table to be displayed
   $form['contacts'] = array(
   '#type' => 'table',
   '#caption' => $this
-  ->t('Sample Table'),
+  ->t('<b>Note:</b><br>Deletes are made by clicking the checkbox of the row to be deleted, edits are made by typing in the text field of the item to be changed.<b> Clicking the "Update Table" button applies all changes both editing and deleting</b>'),
   '#header' => array(
   $this->t('Delete'),
   $this->t('id'),
@@ -40,6 +41,7 @@ class InstitutionForm extends ConfigFormBase {
 
     $form['contacts'][$i]['operation'] = array(
 		'#type' => 'checkbox',
+    '#title' => $this->t("Delete"),
 	  );
     $form['contacts'][$i]['Id'] = array(
 		'#type' => 'item',
@@ -59,24 +61,26 @@ class InstitutionForm extends ConfigFormBase {
 //A button for the selected data
 $form['submit'] = [
   '#type' => 'submit',
-  '#value' => t('Update/Remove'),
+  '#value' => t('Update Table'),
 ];
 
 // creation of form to add data to the institution table
-$form['name'] = [
-  '#type' => 'textfield',
-  '#title' => $this->t('Add to the Institution Table'),
-  '#size' => '25',
-  '#maxlength' => '150',
-  '#default_value' => t('University Of Prince Edward Island'),
-  '#attributes' => ['placeholder' => t('University Of Prince Edward Island')]
-];
-  $form['extension'] = [
+  $form['name'] = [
     '#type' => 'textfield',
+    '#title' => $this->t('Enter name of Institution'),
     '#size' => '25',
     '#maxlength' => '150',
-    '#default_value' => t('@upei.ca'),
-    '#attributes' => ['placeholder' => t('@upei.ca')]
+    '#default_value' => t('Example'),
+    '#prefix' => t('<h4><br ><center><b><u>Add Institution to Table</u></b></center></br></h4>'),
+    '#attributes' => ['placeholder' => t('Example')]
+  ];
+  $form['extension'] = [
+    '#type' => 'textfield',
+    '#title' => $this->t('Enter domain of Institution'),
+    '#size' => '25',
+    '#maxlength' => '150',
+    '#default_value' => t('@example.com'),
+    '#attributes' => ['placeholder' => t('@example.com')]
   ];
 
   $form['submit2'] = [
@@ -90,12 +94,13 @@ $form['name'] = [
 
   public function validateForm(array &$form, FormStateInterface $form_state)
   {
+    
     $extension = $form_state->getValue('extension');
     if(preg_match('/^@\w*\W\w*/', $extension) == false)
     {
       $form_state->setErrorByName('extension', $this->t('The extension should be of this format "@upei.ca"'));
     }
-    
+
     $name = $form_state->getValue('name');
     if(preg_match('/^[a-zA-Z0-9_].+$/', $name) == false)
     {
